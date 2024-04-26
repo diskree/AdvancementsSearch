@@ -18,7 +18,11 @@ public class AdvancementWidgetMixin {
     @Final
     private AdvancementTab tab;
 
-    @Inject(method = "renderLines", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(
+            method = "renderLines",
+            at = @At(value = "HEAD"),
+            cancellable = true
+    )
     public void renderLinesInject(DrawContext context, int x, int y, boolean border, CallbackInfo ci) {
         if (tab.getRoot() != null && AdvancementsSearch.ADVANCEMENTS_SEARCH_ID.equals(tab.getRoot().getAdvancementEntry().id())) {
             ci.cancel();

@@ -17,7 +17,6 @@ import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -32,6 +31,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.awt.*;
@@ -198,13 +198,23 @@ public abstract class AdvancementsScreenMixin extends Screen {
         }
     }
 
-    @Redirect(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientAdvancementManager;selectTab(Lnet/minecraft/advancement/AdvancementEntry;Z)V"))
+    @Redirect(
+            method = "mouseClicked",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/network/ClientAdvancementManager;selectTab(Lnet/minecraft/advancement/AdvancementEntry;Z)V"
+            )
+    )
     private void mouseClickedRedirect(@NotNull ClientAdvancementManager instance, AdvancementEntry tab, boolean local) {
         isSearchActive = false;
         instance.selectTab(tab, true);
     }
 
-    @Inject(method = "drawAdvancementTree", at = @At("HEAD"), cancellable = true)
+    @Inject(
+            method = "drawAdvancementTree",
+            at = @At("HEAD"),
+            cancellable = true
+    )
     private void drawAdvancementTreeInject(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
         if (isSearchActive && searchTab.widgets.size() > 1) {
             searchTab.render(context, x + 9, y + 18);
@@ -212,26 +222,40 @@ public abstract class AdvancementsScreenMixin extends Screen {
         }
     }
 
-    @ModifyArgs(method = "drawAdvancementTree", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V", ordinal = 0))
+    @ModifyArgs(
+            method = "drawAdvancementTree",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
+                    ordinal = 0
+            )
+    )
     private void drawAdvancementTreeModifyText(Args args) {
         if (isSearchActive) {
             args.set(1, Text.translatable("advancementssearch.advancements_not_found"));
         }
     }
 
-    @Inject(method = "drawWindow", at = @At(value = "RETURN"))
-    private void drawSearch(@NotNull DrawContext context, int x, int y, CallbackInfo ci) {
-        context.drawTexture(CREATIVE_INVENTORY_TEXTURE, x + 252 - 8 - SEARCH_FIELD_WIDTH, y + 4, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
-    }
-
-    @ModifyArgs(method = "drawWindow", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawBackground(Lnet/minecraft/client/gui/DrawContext;IIZ)V"))
+    @ModifyArgs(
+            method = "drawWindow",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawBackground(Lnet/minecraft/client/gui/DrawContext;IIZ)V"
+            )
+    )
     private void drawWindowModifyTabSelected(Args args) {
         if (isSearchActive) {
             args.set(3, false);
         }
     }
 
-    @Redirect(method = "drawWidgetTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(Lnet/minecraft/client/gui/DrawContext;IIII)V"))
+    @Redirect(
+            method = "drawWidgetTooltip",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(Lnet/minecraft/client/gui/DrawContext;IIII)V"
+            )
+    )
     private void drawWidgetTooltipRedirectTab(AdvancementTab instance, DrawContext context, int mouseX, int mouseY, int x, int y) {
         if (isSearchActive) {
             instance = searchTab;
@@ -239,39 +263,44 @@ public abstract class AdvancementsScreenMixin extends Screen {
         instance.drawWidgetTooltip(context, mouseX, mouseY, x, y);
     }
 
-    @Redirect(method = "mouseScrolled", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;", opcode = Opcodes.GETFIELD))
+    @Redirect(
+            method = "mouseScrolled",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
     private AdvancementTab mouseScrolledRedirect(AdvancementsScreen instance) {
         return isSearchActive ? searchTab : selectedTab;
     }
 
-    @Redirect(method = "mouseDragged", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;", opcode = Opcodes.GETFIELD))
+    @Redirect(
+            method = "mouseDragged",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
     private AdvancementTab mouseDraggedRedirect(AdvancementsScreen instance) {
         return isSearchActive ? searchTab : selectedTab;
     }
 
-    @Contract(pure = true)
-    @Redirect(method = "drawAdvancementTree", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;", opcode = Opcodes.GETFIELD))
+    @Redirect(
+            method = "drawAdvancementTree",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
     private @Nullable AdvancementTab drawAdvancementTreeRedirect(AdvancementsScreen instance) {
         return isSearchActive && searchTab.widgets.size() <= 1 ? null : selectedTab;
     }
 
     @Inject(method = "init", at = @At(value = "RETURN"))
     public void initInject(CallbackInfo ci) {
-        searchField = new TextFieldWidget(textRenderer, (width - 252) / 2 + 252 - 8 - SEARCH_FIELD_WIDTH + 2, (height - 140) / 2 + 6, SEARCH_FIELD_WIDTH - 8, SEARCH_FIELD_HEIGHT - 2, ScreenTexts.EMPTY);
-        searchField.setDrawsBackground(false);
-        //noinspection DataFlowIssue
-        searchField.setEditableColor(Formatting.WHITE.getColorValue());
-        searchField.setPlaceholder(SEARCH_HINT);
-        searchField.setMaxLength(50);
-        searchField.setFocused(true);
-        searchField.setChangedListener(query -> {
-            if (query.isEmpty()) {
-                isSearchActive = false;
-            } else {
-                isSearchActive = true;
-                refreshSearchResults();
-            }
-        });
         AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
                 ItemStack.EMPTY,
                 Text.empty(),
@@ -295,24 +324,67 @@ public abstract class AdvancementsScreenMixin extends Screen {
         }
     }
 
-    @Inject(method = "render", at = @At(value = "RETURN"))
-    public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    @Inject(
+            method = "render",
+            at = @At(value = "TAIL"),
+            locals = LocalCapture.CAPTURE_FAILHARD
+    )
+    public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
+        if (searchField == null) {
+            searchField = new TextFieldWidget(
+                    textRenderer,
+                    SEARCH_FIELD_WIDTH - 8,
+                    SEARCH_FIELD_HEIGHT - 2,
+                    ScreenTexts.EMPTY
+            );
+            searchField.setDrawsBackground(false);
+            searchField.setFocused(true);
+            //noinspection DataFlowIssue
+            searchField.setEditableColor(Formatting.WHITE.getColorValue());
+            searchField.setPlaceholder(SEARCH_HINT);
+            searchField.setMaxLength(50);
+            searchField.setChangedListener(query -> {
+                if (query.isEmpty()) {
+                    isSearchActive = false;
+                } else {
+                    isSearchActive = true;
+                    refreshSearchResults();
+                }
+            });
+        }
+
+        int windowWidth = Math.abs(i * 2 - width);
+        int fieldX = i + windowWidth - 8 - SEARCH_FIELD_WIDTH;
+        int fieldY = j + 4;
+        int textPadding = 2;
+
+        context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
+        searchField.setX(fieldX + textPadding);
+        searchField.setY(fieldY + textPadding);
         searchField.render(context, mouseX, mouseY, delta);
     }
 
-    @Inject(method = "keyPressed", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(
+            method = "keyPressed",
+            at = @At(value = "HEAD"),
+            cancellable = true
+    )
     public void keyPressedInject(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        if (searchField.keyPressed(keyCode, scanCode, modifiers)) {
+        if (searchField != null && searchField.keyPressed(keyCode, scanCode, modifiers)) {
             cir.setReturnValue(true);
         }
-        if (searchField.isFocused() && searchField.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+        if (searchField != null && searchField.isFocused() && searchField.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
             cir.setReturnValue(true);
         }
     }
 
-    @Inject(method = "mouseClicked", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(
+            method = "mouseClicked",
+            at = @At(value = "HEAD"),
+            cancellable = true
+    )
     public void mouseClickedInject(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-        if (searchField.mouseClicked(mouseX, mouseY, button)) {
+        if (searchField != null && searchField.mouseClicked(mouseX, mouseY, button)) {
             cir.setReturnValue(true);
         }
     }
