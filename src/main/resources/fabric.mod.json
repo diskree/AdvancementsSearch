@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "${modId}",
+	"version": "${modVersion}",
+	"name": "${modName}",
+	"description": "Add search to the advancements window.",
+	"authors": [
+		"${author}"
+	],
+	"contact": {
+		"sources": "${repoUrl}"
+	},
+	"license": "MIT",
+	"icon": "assets/advancementssearch/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"com.diskree.advancementssearch.AdvancementsSearch"
+		]
+	},
+	"mixins": [
+		"advancementssearch.mixins.json"
+	],
+	"depends": {
+		"java": ">=${minJavaVersion}",
+		"minecraft": "=${minecraftVersion}",
+		"fabricloader": ">=${minLoaderVersion}",
+		"fabric-api": "*"
+	},
+	"accessWidener": "advancementssearch.accesswidener"
+}
