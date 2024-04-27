@@ -54,9 +54,6 @@ public abstract class AdvancementsScreenMixin extends Screen {
     private static final int SEARCH_FIELD_HEIGHT = 12;
 
     @Unique
-    private static final int SEARCH_RESULT_COLUMNS = 10;
-
-    @Unique
     private static final Text SEARCH_HINT = Text.translatable("gui.recipebook.search_hint").formatted(Formatting.ITALIC).formatted(Formatting.GRAY);
 
     @Unique
@@ -70,6 +67,9 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     @Unique
     private boolean isSearchActive;
+
+    @Unique
+    private int windowWidth;
 
     @Shadow
     @Final
@@ -155,7 +155,11 @@ public abstract class AdvancementsScreenMixin extends Screen {
             return Integer.compare(index1, index2);
         });
 
-        PlacedAdvancement parentPlacedAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
+        PlacedAdvancement rootAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
+        PlacedAdvancement parentPlacedAdvancement = rootAdvancement;
+        int frameContainerWidth = 28;
+        int treeWidth = windowWidth - 9 * 2;
+        int columnsCount = treeWidth / frameContainerWidth;
         for (PlacedAdvancement searchResult : searchResults) {
             AdvancementDisplay searchResultDisplay = searchResult.getAdvancement().display().orElse(null);
             if (searchResultDisplay == null) {
@@ -187,8 +191,8 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
             searchTab.addAdvancement(searchResultPlacedAdvancement);
             searchTab.widgets.get(searchResultAdvancementEntry).setProgress(progresses.get(searchResultAdvancementEntry));
-            if (columnIndex == SEARCH_RESULT_COLUMNS - 1) {
-                parentPlacedAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
+            if (columnIndex == columnsCount - 1) {
+                parentPlacedAdvancement = rootAdvancement;
                 columnIndex = 0;
                 rowIndex++;
             } else {
@@ -357,7 +361,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
             });
         }
 
-        int windowWidth = Math.abs(i * 2 - width);
+        windowWidth = Math.abs(i * 2 - width);
         int fieldX = i + windowWidth - 8 - SEARCH_FIELD_WIDTH;
         int fieldY = j + 4;
         int textPadding = 2;
