@@ -38,13 +38,40 @@ public class AdvancementWidgetMixin {
     @ModifyVariable(
             method = "renderWidgets",
             at = @At(value = "HEAD"),
-            ordinal = 0,
+            index = 2,
             argsOnly = true
     )
     public int modifyWidgetX(int x) {
         if (tab.getRoot() != null && AdvancementsSearch.ADVANCEMENTS_SEARCH_ID.equals(tab.getRoot().getAdvancementEntry().id()) && parent == null) {
             x -= 2;
+            System.out.println("modifyWidgetX");
         }
         return x;
+    }
+
+    @ModifyVariable(
+            method = "drawTooltip",
+            at = @At(value = "HEAD"),
+            index = 5,
+            argsOnly = true
+    )
+    public int modifyTooltipX(int x) {
+        if (tab.getRoot() != null && AdvancementsSearch.ADVANCEMENTS_SEARCH_ID.equals(tab.getRoot().getAdvancementEntry().id())) {
+            x -= 2;
+        }
+        return x;
+    }
+
+    @ModifyVariable(
+            method = "drawTooltip",
+            at = @At(value = "HEAD"),
+            index = 2,
+            argsOnly = true
+    )
+    public int modifyOriginX(int originX) {
+        if (tab.getRoot() != null && AdvancementsSearch.ADVANCEMENTS_SEARCH_ID.equals(tab.getRoot().getAdvancementEntry().id())) {
+            originX -= 2;
+        }
+        return originX;
     }
 }

@@ -3,6 +3,7 @@ package com.diskree.advancementssearch.mixin;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import net.minecraft.advancement.*;
 import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
@@ -54,9 +55,6 @@ public abstract class AdvancementsScreenMixin extends Screen {
     private static final int SEARCH_FIELD_HEIGHT = 12;
 
     @Unique
-    private static final Text SEARCH_HINT = Text.translatable("gui.recipebook.search_hint").formatted(Formatting.ITALIC).formatted(Formatting.GRAY);
-
-    @Unique
     private TextFieldWidget searchField;
 
     @Unique
@@ -78,30 +76,56 @@ public abstract class AdvancementsScreenMixin extends Screen {
     @Shadow
     private @Nullable AdvancementTab selectedTab;
 
+    @Shadow
+    public abstract boolean mouseClicked(double mouseX, double mouseY, int button);
+
     public AdvancementsScreenMixin() {
         super(null);
     }
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        if (searchField.charTyped(chr, modifiers)) {
-            refreshSearchResults();
-            return true;
+        if (searchField != null) {
+            String oldText = searchField.getText();
+            if (searchField.charTyped(chr, modifiers)) {
+                if (!Objects.equals(oldText, searchField.getText())) {
+                    search();
+                }
+                return true;
+            }
         }
         return false;
     }
 
+    @Override
+    public void resize(MinecraftClient client, int width, int height) {
+        if (searchField != null) {
+            String oldText = searchField.getText();
+            init(client, width, height);
+            searchField.setText(oldText);
+            if (!searchField.getText().isEmpty()) {
+                search();
+            }
+        }
+    }
+
     @Unique
-    private void refreshSearchResults() {
-        if (client == null || client.player == null) {
+    private void search() {
+        if (client == null || client.player == null || searchField == null) {
             return;
         }
         String query = searchField.getText().toLowerCase(Locale.ROOT);
+        if (query.isEmpty()) {
+            isSearchActive = false;
+            return;
+        }
+        isSearchActive = true;
         for (AdvancementWidget widget : searchTab.widgets.values()) {
             widget.parent = null;
             widget.children.clear();
         }
         searchTab.widgets.clear();
+
         searchTab.minPanX = Integer.MAX_VALUE;
         searchTab.minPanY = Integer.MAX_VALUE;
         searchTab.maxPanX = Integer.MIN_VALUE;
@@ -305,6 +329,20 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At(value = "RETURN"))
     public void initInject(CallbackInfo ci) {
+        searchField = new TextFieldWidget(
+                textRenderer,
+                SEARCH_FIELD_WIDTH - 8,
+                SEARCH_FIELD_HEIGHT - 2,
+                ScreenTexts.EMPTY
+        );
+        searchField.setFocusUnlocked(false);
+        searchField.setDrawsBackground(false);
+        //noinspection DataFlowIssue
+        searchField.setEditableColor(Formatting.WHITE.getColorValue());
+        searchField.setMaxLength(50);
+        addSelectableChild(searchField);
+        setInitialFocus(searchField);
+
         AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
                 ItemStack.EMPTY,
                 Text.empty(),
@@ -338,38 +376,17 @@ public abstract class AdvancementsScreenMixin extends Screen {
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
-        if (searchField == null) {
-            searchField = new TextFieldWidget(
-                    textRenderer,
-                    SEARCH_FIELD_WIDTH - 8,
-                    SEARCH_FIELD_HEIGHT - 2,
-                    ScreenTexts.EMPTY
-            );
-            searchField.setDrawsBackground(false);
-            searchField.setFocused(true);
-            //noinspection DataFlowIssue
-            searchField.setEditableColor(Formatting.WHITE.getColorValue());
-            searchField.setPlaceholder(SEARCH_HINT);
-            searchField.setMaxLength(50);
-            searchField.setChangedListener(query -> {
-                if (query.isEmpty()) {
-                    isSearchActive = false;
-                } else {
-                    isSearchActive = true;
-                    refreshSearchResults();
-                }
-            });
+        if (searchField != null) {
+            windowWidth = Math.abs(i * 2 - width);
+            int fieldX = i + windowWidth - 8 - SEARCH_FIELD_WIDTH;
+            int fieldY = j + 4;
+            int textPadding = 2;
+
+            context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
+            searchField.setX(fieldX + textPadding);
+            searchField.setY(fieldY + textPadding);
+            searchField.render(context, mouseX, mouseY, delta);
         }
-
-        windowWidth = Math.abs(i * 2 - width);
-        int fieldX = i + windowWidth - 8 - SEARCH_FIELD_WIDTH;
-        int fieldY = j + 4;
-        int textPadding = 2;
-
-        context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
-        searchField.setX(fieldX + textPadding);
-        searchField.setY(fieldY + textPadding);
-        searchField.render(context, mouseX, mouseY, delta);
     }
 
     @Inject(
@@ -378,11 +395,17 @@ public abstract class AdvancementsScreenMixin extends Screen {
             cancellable = true
     )
     public void keyPressedInject(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        if (searchField != null && searchField.keyPressed(keyCode, scanCode, modifiers)) {
-            cir.setReturnValue(true);
-        }
-        if (searchField != null && searchField.isFocused() && searchField.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
-            cir.setReturnValue(true);
+        if (searchField != null) {
+            String oldText = searchField.getText();
+            if (searchField.keyPressed(keyCode, scanCode, modifiers)) {
+                if (!Objects.equals(oldText, searchField.getText())) {
+                    search();
+                }
+                cir.setReturnValue(true);
+            }
+            if (searchField.isFocused() && searchField.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+                cir.setReturnValue(true);
+            }
         }
     }
 
