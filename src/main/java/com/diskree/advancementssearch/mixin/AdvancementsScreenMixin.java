@@ -326,7 +326,11 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     @Inject(
             method = "render",
-            at = @At(value = "TAIL"),
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWindow(Lnet/minecraft/client/gui/DrawContext;II)V",
+                    shift = At.Shift.AFTER
+            ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
