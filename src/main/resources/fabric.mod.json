@@ -3,7 +3,7 @@
 	"id": "${modId}",
 	"version": "${modVersion}",
 	"name": "${modName}",
-	"description": "Add search to the advancements window.",
+	"description": "Search in the advancements window.",
 	"authors": [
 		"${author}"
 	],
