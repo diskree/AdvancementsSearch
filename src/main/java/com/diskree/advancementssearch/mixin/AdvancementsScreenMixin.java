@@ -127,7 +127,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private ArrayList<PlacedAdvancement> getAdvancements() {
+    private @NotNull ArrayList<PlacedAdvancement> getAdvancements() {
         if (client == null || client.player == null) {
             return new ArrayList<>();
         }
@@ -286,7 +286,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private void openAdvancement(PlacedAdvancement advancement) {
+    private void openAdvancement(PlacedAdvancement placedAdvancement) {
 
     }
 
@@ -535,8 +535,13 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 focusedAdvancementWidget.tab == searchTab &&
                 InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_CONTROL)
         ) {
-            openAdvancement(focusedAdvancementWidget.advancement);
-            cir.setReturnValue(true);
+            for (PlacedAdvancement placedAdvancement : getAdvancements()) {
+                if (placedAdvancement.getAdvancementEntry().id().equals(focusedAdvancementWidget.advancement.getAdvancementEntry().id())) {
+                    openAdvancement(placedAdvancement);
+                    cir.setReturnValue(true);
+                    break;
+                }
+            }
         }
     }
 }
