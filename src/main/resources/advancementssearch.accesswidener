@@ -16,3 +16,5 @@ accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget c
 accessible field net/minecraft/client/network/ClientAdvancementManager advancementProgresses Ljava/util/Map;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab originX D
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab originY D
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget tab Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget advancement Lnet/minecraft/advancement/PlacedAdvancement;

@@ -1,5 +1,6 @@
 package com.diskree.advancementssearch.mixin;
 
+import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.RandomAdvancementButtonWidget;
 import net.minecraft.advancement.*;
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenTexts;
@@ -40,7 +42,7 @@ import java.util.List;
 import java.util.*;
 
 @Mixin(AdvancementsScreen.class)
-public abstract class AdvancementsScreenMixin extends Screen {
+public abstract class AdvancementsScreenMixin extends Screen implements AdvancementsScreenImpl {
 
     @Unique
     private static final Identifier CREATIVE_INVENTORY_TEXTURE =
@@ -79,6 +81,9 @@ public abstract class AdvancementsScreenMixin extends Screen {
     @Unique
     private int searchResultsOriginX;
 
+    @Unique
+    private AdvancementWidget focusedAdvancementWidget;
+
     @Shadow
     @Final
     private ClientAdvancementManager advancementHandler;
@@ -91,6 +96,11 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     public AdvancementsScreenMixin() {
         super(null);
+    }
+
+    @Override
+    public void advancementssearch$setFocusedAdvancementWidget(AdvancementWidget focusedAdvancementWidget) {
+        this.focusedAdvancementWidget = focusedAdvancementWidget;
     }
 
     @Override
@@ -117,16 +127,13 @@ public abstract class AdvancementsScreenMixin extends Screen {
     }
 
     @Unique
-    private void search() {
-        if (client == null || client.player == null || searchField == null) {
-            return;
+    private ArrayList<PlacedAdvancement> getAdvancements() {
+        if (client == null || client.player == null) {
+            return new ArrayList<>();
         }
-        checkSearchActive();
-        String query = searchField.getText().toLowerCase(Locale.ROOT);
-
+        ArrayList<PlacedAdvancement> advancements = new ArrayList<>();
         AdvancementManager advancementManager = advancementHandler.getManager();
         Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
-        searchResults = new ArrayList<>();
         for (AdvancementEntry advancementEntry : new ArrayList<>(progresses.keySet())) {
             if (advancementEntry == null) {
                 continue;
@@ -147,8 +154,28 @@ public abstract class AdvancementsScreenMixin extends Screen {
             if (rootAdvancement == null) {
                 continue;
             }
+            advancements.add(placedAdvancement);
+        }
+        return advancements;
+    }
+
+    @Unique
+    private void search() {
+        if (client == null || client.player == null || searchField == null) {
+            return;
+        }
+        checkSearchActive();
+        String query = searchField.getText().toLowerCase(Locale.ROOT);
+
+        searchResults = new ArrayList<>();
+        for (PlacedAdvancement placedAdvancement : getAdvancements()) {
+            AdvancementDisplay display = placedAdvancement.getAdvancement().display().orElse(null);
+            if (display == null) {
+                continue;
+            }
             String title = display.getTitle().getString().toLowerCase(Locale.ROOT);
             String description = display.getDescription().getString().toLowerCase(Locale.ROOT);
+
             if (title.contains(query) || description.contains(query)) {
                 searchResults.add(placedAdvancement);
             }
@@ -256,6 +283,11 @@ public abstract class AdvancementsScreenMixin extends Screen {
             return;
         }
         isSearchActive = true;
+    }
+
+    @Unique
+    private void openAdvancement(PlacedAdvancement advancement) {
+
     }
 
     @Redirect(
@@ -369,7 +401,19 @@ public abstract class AdvancementsScreenMixin extends Screen {
         setInitialFocus(searchField);
 
         randomAdvancementButton = new RandomAdvancementButtonWidget(button -> {
-
+            if (client == null || client.player == null) {
+                return;
+            }
+            Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
+            ArrayList<PlacedAdvancement> notObtainedAdvancements = new ArrayList<>();
+            for (PlacedAdvancement placedAdvancement : getAdvancements()) {
+                if (!progresses.get(placedAdvancement.getAdvancementEntry()).isDone()) {
+                    notObtainedAdvancements.add(placedAdvancement);
+                }
+            }
+            if (!notObtainedAdvancements.isEmpty()) {
+                openAdvancement(notObtainedAdvancements.get(client.player.getRandom().nextInt(notObtainedAdvancements.size())));
+            }
         });
 
         if (searchTab == null) {
@@ -484,6 +528,14 @@ public abstract class AdvancementsScreenMixin extends Screen {
             cir.setReturnValue(true);
         }
         if (randomAdvancementButton != null && randomAdvancementButton.mouseClicked(mouseX, mouseY, button)) {
+            cir.setReturnValue(true);
+        }
+        if (focusedAdvancementWidget != null &&
+                focusedAdvancementWidget.tab != null &&
+                focusedAdvancementWidget.tab == searchTab &&
+                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_CONTROL)
+        ) {
+            openAdvancement(focusedAdvancementWidget.advancement);
             cir.setReturnValue(true);
         }
     }
