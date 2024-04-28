@@ -64,10 +64,16 @@ public abstract class AdvancementsScreenMixin extends Screen {
     private AdvancementTab searchTab;
 
     @Unique
+    private ArrayList<PlacedAdvancement> searchResults;
+
+    @Unique
     private boolean isSearchActive;
 
     @Unique
     private int searchResultsColumnsCount;
+
+    @Unique
+    private int searchResultsOriginX;
 
     @Shadow
     @Final
@@ -103,9 +109,6 @@ public abstract class AdvancementsScreenMixin extends Screen {
             String oldText = searchField.getText();
             init(client, width, height);
             searchField.setText(oldText);
-            if (!searchField.getText().isEmpty()) {
-                search();
-            }
         }
     }
 
@@ -114,32 +117,12 @@ public abstract class AdvancementsScreenMixin extends Screen {
         if (client == null || client.player == null || searchField == null) {
             return;
         }
+        checkSearchActive();
         String query = searchField.getText().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) {
-            isSearchActive = false;
-            return;
-        }
-        isSearchActive = true;
-        for (AdvancementWidget widget : searchTab.widgets.values()) {
-            widget.parent = null;
-            widget.children.clear();
-        }
-        searchTab.widgets.clear();
 
-        searchTab.minPanX = Integer.MAX_VALUE;
-        searchTab.minPanY = Integer.MAX_VALUE;
-        searchTab.maxPanX = Integer.MIN_VALUE;
-        searchTab.maxPanY = Integer.MIN_VALUE;
-
-        searchTab.initialized = false;
-
-        searchTab.addWidget(searchTab.rootWidget, searchRootAdvancement.getAdvancementEntry());
-
-        int rowIndex = 0;
-        int columnIndex = 0;
         AdvancementManager advancementManager = advancementHandler.getManager();
         Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
-        ArrayList<PlacedAdvancement> searchResults = new ArrayList<>();
+        searchResults = new ArrayList<>();
         for (AdvancementEntry advancementEntry : new ArrayList<>(progresses.keySet())) {
             if (advancementEntry == null) {
                 continue;
@@ -166,16 +149,13 @@ public abstract class AdvancementsScreenMixin extends Screen {
                 searchResults.add(placedAdvancement);
             }
         }
-        if (searchResults.isEmpty()) {
-            return;
-        }
+        searchResults.sort(Comparator.comparing((advancement) -> advancement.getAdvancementEntry().id()));
 
         List<AdvancementFrame> frameOrder = Arrays.asList(
                 AdvancementFrame.TASK,
                 AdvancementFrame.GOAL,
                 AdvancementFrame.CHALLENGE
         );
-        searchResults.sort(Comparator.comparing((advancement) -> advancement.getAdvancementEntry().id()));
         searchResults.sort((advancement1, advancement2) -> {
             AdvancementDisplay display1 = advancement1.getAdvancement().display().orElse(null);
             AdvancementDisplay display2 = advancement2.getAdvancement().display().orElse(null);
@@ -186,7 +166,24 @@ public abstract class AdvancementsScreenMixin extends Screen {
             int index2 = frameOrder.indexOf(display2.getFrame());
             return Integer.compare(index1, index2);
         });
+        if (searchResults.isEmpty()) {
+            resetSearchTab();
+            return;
+        }
+        updateSearchResults();
+    }
 
+    @Unique
+    private void updateSearchResults() {
+        if (client == null || client.player == null || searchTab == null) {
+            return;
+        }
+        resetSearchTab();
+        searchTab.addWidget(searchTab.rootWidget, searchRootAdvancement.getAdvancementEntry());
+
+        int rowIndex = 0;
+        int columnIndex = 0;
+        Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
         PlacedAdvancement rootAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
         PlacedAdvancement parentPlacedAdvancement = rootAdvancement;
         for (PlacedAdvancement searchResult : searchResults) {
@@ -229,6 +226,32 @@ public abstract class AdvancementsScreenMixin extends Screen {
                 columnIndex++;
             }
         }
+    }
+
+    @Unique
+    private void resetSearchTab() {
+        searchTab.minPanX = Integer.MAX_VALUE;
+        searchTab.minPanY = Integer.MAX_VALUE;
+        searchTab.maxPanX = Integer.MIN_VALUE;
+        searchTab.maxPanY = Integer.MIN_VALUE;
+        searchTab.originX = searchResultsOriginX;
+        searchTab.originY = 0;
+        searchTab.initialized = true;
+        for (AdvancementWidget widget : searchTab.widgets.values()) {
+            widget.parent = null;
+            widget.children.clear();
+        }
+        searchTab.widgets.clear();
+    }
+
+    @Unique
+    private void checkSearchActive() {
+        String query = searchField.getText().toLowerCase(Locale.ROOT);
+        if (query.isEmpty()) {
+            isSearchActive = false;
+            return;
+        }
+        isSearchActive = true;
     }
 
     @Redirect(
@@ -335,41 +358,41 @@ public abstract class AdvancementsScreenMixin extends Screen {
     @Inject(method = "init", at = @At(value = "RETURN"))
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
-        searchField.setFocusUnlocked(false);
         searchField.setDrawsBackground(false);
         //noinspection DataFlowIssue
         searchField.setEditableColor(Formatting.WHITE.getColorValue());
         searchField.setMaxLength(50);
-        addSelectableChild(searchField);
         setInitialFocus(searchField);
 
-        AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
-                ItemStack.EMPTY,
-                Text.empty(),
-                Text.empty(),
-                Optional.of(new Identifier("textures/block/" + Registries.BLOCK.getId(Blocks.BLACK_CONCRETE).getPath() + ".png")),
-                AdvancementFrame.TASK,
-                false,
-                false,
-                true
-        );
-        searchRootAdvancement = new PlacedAdvancement(
-                Advancement.Builder
-                        .createUntelemetered()
-                        .display(searchRootAdvancementDisplay)
-                        .build(AdvancementsSearch.ADVANCEMENTS_SEARCH_ID),
-                null
-        );
-        AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;
-        if (client != null) {
-            searchTab = new AdvancementTab(
-                    client,
-                    advancementsScreen,
-                    null,
-                    0,
-                    searchRootAdvancement,
-                    searchRootAdvancementDisplay
+        if (searchTab == null) {
+            AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
+                    ItemStack.EMPTY,
+                    Text.empty(),
+                    Text.empty(),
+                    Optional.of(new Identifier("textures/block/" + Registries.BLOCK.getId(Blocks.BLACK_CONCRETE).getPath() + ".png")),
+                    AdvancementFrame.TASK,
+                    false,
+                    false,
+                    true
             );
+            searchRootAdvancement = new PlacedAdvancement(
+                    Advancement.Builder
+                            .createUntelemetered()
+                            .display(searchRootAdvancementDisplay)
+                            .build(AdvancementsSearch.ADVANCEMENTS_SEARCH_ID),
+                    null
+            );
+            AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;
+            if (client != null) {
+                searchTab = new AdvancementTab(
+                        client,
+                        advancementsScreen,
+                        null,
+                        0,
+                        searchRootAdvancement,
+                        searchRootAdvancementDisplay
+                );
+            }
         }
     }
 
@@ -390,7 +413,17 @@ public abstract class AdvancementsScreenMixin extends Screen {
             int borderWidth = 9;
             int frameContainerWidth = frameOffset + frameWidth + frameOffset;
             int treeWidth = windowWidth - borderWidth * 2;
-            searchResultsColumnsCount = treeWidth / frameContainerWidth;
+            int columnsCount = treeWidth / frameContainerWidth;
+            int rowWidth = frameContainerWidth * columnsCount;
+            int horizontalOffset = treeWidth - rowWidth - 3;
+            int originX = horizontalOffset / 2;
+            if (searchResultsColumnsCount != columnsCount || searchResultsOriginX != originX) {
+                searchResultsColumnsCount = columnsCount;
+                searchResultsOriginX = originX;
+                if (isSearchActive) {
+                    updateSearchResults();
+                }
+            }
 
             int symmetryFixX = 1;
             int fieldX = i + windowWidth - borderWidth - SEARCH_FIELD_WIDTH + symmetryFixX;
@@ -435,6 +468,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
     )
     public void mouseClickedInject(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (searchField != null && searchField.mouseClicked(mouseX, mouseY, button)) {
+            checkSearchActive();
             cir.setReturnValue(true);
         }
     }
