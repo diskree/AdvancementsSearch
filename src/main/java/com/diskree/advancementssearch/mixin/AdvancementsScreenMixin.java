@@ -1,6 +1,7 @@
 package com.diskree.advancementssearch.mixin;
 
 import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.RandomAdvancementButtonWidget;
 import net.minecraft.advancement.*;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -56,6 +57,9 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     @Unique
     private TextFieldWidget searchField;
+
+    @Unique
+    private RandomAdvancementButtonWidget randomAdvancementButton;
 
     @Unique
     private PlacedAdvancement searchRootAdvancement;
@@ -364,6 +368,10 @@ public abstract class AdvancementsScreenMixin extends Screen {
         searchField.setMaxLength(50);
         setInitialFocus(searchField);
 
+        randomAdvancementButton = new RandomAdvancementButtonWidget(button -> {
+
+        });
+
         if (searchTab == null) {
             AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
                     ItemStack.EMPTY,
@@ -438,6 +446,10 @@ public abstract class AdvancementsScreenMixin extends Screen {
             searchField.setWidth(SEARCH_FIELD_WIDTH - leftTextOffset - rightTextOffset);
             searchField.setHeight(SEARCH_FIELD_HEIGHT - leftTextOffset);
             searchField.render(context, mouseX, mouseY, delta);
+
+            randomAdvancementButton.setX(fieldX - randomAdvancementButton.getWidth() - 3);
+            randomAdvancementButton.setY(fieldY);
+            randomAdvancementButton.render(context, mouseX, mouseY, delta);
         }
     }
 
@@ -469,6 +481,9 @@ public abstract class AdvancementsScreenMixin extends Screen {
     public void mouseClickedInject(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (searchField != null && searchField.mouseClicked(mouseX, mouseY, button)) {
             checkSearchActive();
+            cir.setReturnValue(true);
+        }
+        if (randomAdvancementButton != null && randomAdvancementButton.mouseClicked(mouseX, mouseY, button)) {
             cir.setReturnValue(true);
         }
     }
