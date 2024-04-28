@@ -7,7 +7,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
-import net.minecraft.client.gui.screen.advancement.AdvancementTabType;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -43,7 +42,8 @@ import java.util.*;
 public abstract class AdvancementsScreenMixin extends Screen {
 
     @Unique
-    private static final Identifier CREATIVE_INVENTORY_TEXTURE = new Identifier("textures/gui/container/creative_inventory/tab_item_search.png");
+    private static final Identifier CREATIVE_INVENTORY_TEXTURE =
+            new Identifier("textures/gui/container/creative_inventory/tab_item_search.png");
 
     @Unique
     private static final Point SEARCH_FIELD_UV = new Point(80, 4);
@@ -67,7 +67,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
     private boolean isSearchActive;
 
     @Unique
-    private int windowWidth;
+    private int searchResultsColumnsCount;
 
     @Shadow
     @Final
@@ -130,6 +130,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
         searchTab.minPanY = Integer.MAX_VALUE;
         searchTab.maxPanX = Integer.MIN_VALUE;
         searchTab.maxPanY = Integer.MIN_VALUE;
+
         searchTab.initialized = false;
 
         searchTab.addWidget(searchTab.rootWidget, searchRootAdvancement.getAdvancementEntry());
@@ -165,8 +166,15 @@ public abstract class AdvancementsScreenMixin extends Screen {
                 searchResults.add(placedAdvancement);
             }
         }
+        if (searchResults.isEmpty()) {
+            return;
+        }
 
-        List<AdvancementFrame> frameOrder = Arrays.asList(AdvancementFrame.TASK, AdvancementFrame.GOAL, AdvancementFrame.CHALLENGE);
+        List<AdvancementFrame> frameOrder = Arrays.asList(
+                AdvancementFrame.TASK,
+                AdvancementFrame.GOAL,
+                AdvancementFrame.CHALLENGE
+        );
         searchResults.sort(Comparator.comparing((advancement) -> advancement.getAdvancementEntry().id()));
         searchResults.sort((advancement1, advancement2) -> {
             AdvancementDisplay display1 = advancement1.getAdvancement().display().orElse(null);
@@ -181,9 +189,6 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
         PlacedAdvancement rootAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
         PlacedAdvancement parentPlacedAdvancement = rootAdvancement;
-        int frameContainerWidth = 28;
-        int treeWidth = windowWidth - 9 * 2;
-        int columnsCount = treeWidth / frameContainerWidth;
         for (PlacedAdvancement searchResult : searchResults) {
             AdvancementDisplay searchResultDisplay = searchResult.getAdvancement().display().orElse(null);
             if (searchResultDisplay == null) {
@@ -215,7 +220,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
             searchTab.addAdvancement(searchResultPlacedAdvancement);
             searchTab.widgets.get(searchResultAdvancementEntry).setProgress(progresses.get(searchResultAdvancementEntry));
-            if (columnIndex == columnsCount - 1) {
+            if (columnIndex == searchResultsColumnsCount - 1) {
                 parentPlacedAdvancement = rootAdvancement;
                 columnIndex = 0;
                 rowIndex++;
@@ -329,12 +334,7 @@ public abstract class AdvancementsScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At(value = "RETURN"))
     public void initInject(CallbackInfo ci) {
-        searchField = new TextFieldWidget(
-                textRenderer,
-                SEARCH_FIELD_WIDTH - 8,
-                SEARCH_FIELD_HEIGHT - 2,
-                ScreenTexts.EMPTY
-        );
+        searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
         searchField.setFocusUnlocked(false);
         searchField.setDrawsBackground(false);
         //noinspection DataFlowIssue
@@ -362,7 +362,14 @@ public abstract class AdvancementsScreenMixin extends Screen {
         );
         AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;
         if (client != null) {
-            searchTab = new AdvancementTab(client, advancementsScreen, AdvancementTabType.RIGHT, 0, searchRootAdvancement, searchRootAdvancementDisplay);
+            searchTab = new AdvancementTab(
+                    client,
+                    advancementsScreen,
+                    null,
+                    0,
+                    searchRootAdvancement,
+                    searchRootAdvancementDisplay
+            );
         }
     }
 
@@ -377,14 +384,26 @@ public abstract class AdvancementsScreenMixin extends Screen {
     )
     public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
         if (searchField != null) {
-            windowWidth = Math.abs(i * 2 - width);
-            int fieldX = i + windowWidth - 8 - SEARCH_FIELD_WIDTH;
+            int windowWidth = Math.abs(i * 2 - width);
+            int frameWidth = 26;
+            int frameOffset = 1;
+            int borderWidth = 9;
+            int frameContainerWidth = frameOffset + frameWidth + frameOffset;
+            int treeWidth = windowWidth - borderWidth * 2;
+            searchResultsColumnsCount = treeWidth / frameContainerWidth;
+
+            int symmetryFixX = 1;
+            int fieldX = i + windowWidth - borderWidth - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = j + 4;
-            int textPadding = 2;
 
             context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
-            searchField.setX(fieldX + textPadding);
-            searchField.setY(fieldY + textPadding);
+
+            int leftTextOffset = 2;
+            int rightTextOffset = 8;
+            searchField.setX(fieldX + leftTextOffset);
+            searchField.setY(fieldY + leftTextOffset);
+            searchField.setWidth(SEARCH_FIELD_WIDTH - leftTextOffset - rightTextOffset);
+            searchField.setHeight(SEARCH_FIELD_HEIGHT - leftTextOffset);
             searchField.render(context, mouseX, mouseY, delta);
         }
     }
