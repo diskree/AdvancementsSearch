@@ -3,9 +3,11 @@ package com.diskree.advancementssearch.mixin;
 import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.RandomAdvancementButtonWidget;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
@@ -15,7 +17,6 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -111,9 +112,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Shadow
     private @Nullable AdvancementTab selectedTab;
-
-    @Shadow
-    public abstract boolean mouseClicked(double mouseX, double mouseY, int button);
 
     public AdvancementsScreenMixin() {
         super(null);
@@ -307,7 +305,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private void openAdvancement(PlacedAdvancement placedAdvancement) {
+    private void openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
         isSearchActive = false;
         targetAdvancement = placedAdvancement;
         advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
@@ -369,6 +367,21 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             args.set(1, Text.translatable("advancementssearch.advancements_not_found"));
         }
     }
+
+    @WrapOperation(
+            method = "drawAdvancementTree",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
+                    ordinal = 1
+            )
+    )
+    private void cancelSadLabelRenderInSearch(DrawContext instance, TextRenderer textRenderer, Text text, int centerX, int y, int color, Operation<Void> original) {
+        if (!isSearchActive) {
+            original.call(instance, textRenderer, text, centerX, y, color);
+        }
+    }
+
 
     @ModifyArgs(
             method = "drawWindow",
