@@ -1,6 +1,10 @@
 package com.diskree.advancementssearch.mixin;
 
+import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import net.minecraft.advancement.AdvancementDisplay;
@@ -45,15 +49,19 @@ public abstract class AdvancementWidgetMixin {
     private int width;
 
     @Shadow
-    protected abstract List<StringVisitable> wrapDescription(Text text, int width);
-
-    @Shadow
     @Final
     private MinecraftClient client;
 
     @Shadow
     @Final
     private int y;
+
+    @Shadow
+    protected abstract List<StringVisitable> wrapDescription(Text text, int width);
+
+    @Shadow
+    @Final
+    public PlacedAdvancement advancement;
 
     @Inject(
             method = "<init>",
@@ -144,5 +152,53 @@ public abstract class AdvancementWidgetMixin {
                 context.drawText(client.textRenderer, searchResultHint.get(line), tooltipX + 5, textY + line * 9, Formatting.GRAY.getColorValue(), false);
             }
         }
+    }
+
+    @WrapOperation(
+            method = "renderWidgets",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"
+            )
+    )
+    private void highlight(DrawContext instance, Identifier texture, int x, int y, int width, int height, Operation<Void> original) {
+        if (tab != null && tab.getScreen() != null) {
+            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
+            if (AdvancementsSearch.isSearch(tab.getRoot()) ||
+                    screen.advancementssearch$getHighlightedAdvancementId() == null ||
+                    screen.advancementssearch$getHighlightedAdvancementId() != advancement.getAdvancementEntry().id() ||
+                    !screen.advancementssearch$isHighlightAtInvisibleState()) {
+                original.call(instance, texture, x, y, width, height);
+            }
+        }
+    }
+
+    @Inject(
+            method = "drawTooltip",
+            at = @At(value = "HEAD")
+    )
+    public void checkHighlight(DrawContext context, int originX, int originY, float alpha, int x, int y, CallbackInfo ci) {
+        if (tab != null && tab.getScreen() != null) {
+            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
+            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
+                    screen.advancementssearch$getHighlightedAdvancementId() != null &&
+                    screen.advancementssearch$getHighlightedAdvancementId() == advancement.getAdvancementEntry().id()) {
+                screen.advancementssearch$stopHighlight();
+            }
+        }
+    }
+
+    @ModifyReturnValue(
+            method = "shouldRender",
+            at = @At(value = "TAIL")
+    )
+    public boolean cancelTooltipRender(boolean original) {
+        if (original && tab != null && tab.getScreen() != null) {
+            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
+            if (!AdvancementsSearch.isSearch(tab.getRoot()) && screen.advancementssearch$getHighlightedAdvancementId() != null) {
+                return screen.advancementssearch$getHighlightedAdvancementId() == advancement.getAdvancementEntry().id();
+            }
+        }
+        return original;
     }
 }

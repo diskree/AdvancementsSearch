@@ -70,6 +70,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private static final int TREE_X_OFFSET = 3;
 
     @Unique
+    private static final int WIDGET_HIGHLIGHT_COUNT = 5;
+
+    @Unique
+    private static final int WIDGET_HIGHLIGHT_TICKS = 3;
+
+    @Unique
     private TextFieldWidget searchField;
 
     @Unique
@@ -105,12 +111,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Unique
     private PlacedAdvancement targetAdvancement;
 
-    @Shadow
-    @Final
-    private ClientAdvancementManager advancementHandler;
+    @Unique
+    private Identifier highlightedAdvancementId;
 
-    @Shadow
-    private @Nullable AdvancementTab selectedTab;
+    @Unique
+    private int widgetHighlightCounter;
 
     public AdvancementsScreenMixin() {
         super(null);
@@ -134,6 +139,33 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Override
     public int advancementssearch$getWindowHeight(boolean withBorder) {
         return withBorder ? windowHeight : windowHeight - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
+    }
+
+    @Override
+    public Identifier advancementssearch$getHighlightedAdvancementId() {
+        return highlightedAdvancementId;
+    }
+
+    @Override
+    public boolean advancementssearch$isHighlightAtInvisibleState() {
+        return widgetHighlightCounter != 0 && (widgetHighlightCounter / WIDGET_HIGHLIGHT_TICKS) % 2 == 0;
+    }
+
+    @Override
+    public void advancementssearch$stopHighlight() {
+        highlightedAdvancementId = null;
+        widgetHighlightCounter = 0;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (widgetHighlightCounter > 0) {
+            widgetHighlightCounter--;
+            if (widgetHighlightCounter == 0) {
+                advancementssearch$stopHighlight();
+            }
+        }
     }
 
     @Override
@@ -320,10 +352,20 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private void openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
+        if (targetAdvancement != null) {
+            return;
+        }
         isSearchActive = false;
         targetAdvancement = placedAdvancement;
         advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
     }
+
+    @Shadow
+    @Final
+    private ClientAdvancementManager advancementHandler;
+
+    @Shadow
+    private @Nullable AdvancementTab selectedTab;
 
     @Inject(
             method = "drawAdvancementTree",
@@ -338,6 +380,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                             -(selectedTab.originY + widget.getY() + (double) WIDGET_SIZE / 2 - ((double) advancementssearch$getWindowHeight(false)) / 2)
                     );
                     targetAdvancement = null;
+                    highlightedAdvancementId = widget.advancement.getAdvancementEntry().id();
+                    widgetHighlightCounter = WIDGET_HIGHLIGHT_COUNT * 2 * WIDGET_HIGHLIGHT_TICKS;
                     break;
                 }
             }
@@ -353,6 +397,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     private void mouseClickedRedirect(@NotNull ClientAdvancementManager instance, AdvancementEntry tab, boolean local) {
         isSearchActive = false;
+        advancementssearch$stopHighlight();
         instance.selectTab(tab, true);
     }
 
