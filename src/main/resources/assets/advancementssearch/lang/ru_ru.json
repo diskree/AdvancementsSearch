@@ -1,4 +1,5 @@
 {
   "advancementssearch.advancements_not_found": "Достижения не найдены",
-  "advancementssearch.random_advancement_tooltip": "Перейти к случайному невыполненному достижению"
+  "advancementssearch.random_advancement_tooltip": "Перейти к случайному невыполненному достижению",
+  "advancementssearch.search_result_hint": "Перейти к достижению - правый клик"
 }

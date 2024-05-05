@@ -55,7 +55,7 @@ public class AdvancementTabMixin {
                     target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V",
                     shift = At.Shift.AFTER
             ),
-            locals = LocalCapture.CAPTURE_FAILSOFT
+            locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void resetFocusedAdvancementWidget(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci, @Local(ordinal = 0) boolean bl) {
         if (!bl) {

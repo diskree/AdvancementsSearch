@@ -452,7 +452,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
         searchField.setDrawsBackground(false);
-        //noinspection DataFlowIssue
         searchField.setEditableColor(Formatting.WHITE.getColorValue());
         searchField.setMaxLength(50);
         setInitialFocus(searchField);
