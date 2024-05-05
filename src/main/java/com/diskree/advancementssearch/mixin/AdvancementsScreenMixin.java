@@ -123,6 +123,21 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
+    public boolean advancementssearch$isSearchActive() {
+        return isSearchActive;
+    }
+
+    @Override
+    public int advancementssearch$getWindowWidth(boolean withBorder) {
+        return withBorder ? windowWidth : windowWidth - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE;
+    }
+
+    @Override
+    public int advancementssearch$getWindowHeight(boolean withBorder) {
+        return withBorder ? windowHeight : windowHeight - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
+    }
+
+    @Override
     public boolean charTyped(char chr, int modifiers) {
         if (searchField != null) {
             String oldText = searchField.getText();
@@ -320,8 +335,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             for (AdvancementWidget widget : selectedTab.widgets.values()) {
                 if (widget != null && widget.advancement == targetAdvancement) {
                     selectedTab.move(
-                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) WIDGET_SIZE / 2 - ((double) windowWidth - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE) / 2),
-                            -(selectedTab.originY + widget.getY() + (double) WIDGET_SIZE / 2 - ((double) windowHeight - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE) / 2)
+                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) WIDGET_SIZE / 2 - ((double) advancementssearch$getWindowWidth(false)) / 2),
+                            -(selectedTab.originY + widget.getY() + (double) WIDGET_SIZE / 2 - ((double) advancementssearch$getWindowHeight(false)) / 2)
                     );
                     targetAdvancement = null;
                     break;
@@ -342,16 +357,16 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         instance.selectTab(tab, true);
     }
 
-    @Inject(
+    @Redirect(
             method = "drawAdvancementTree",
-            at = @At("HEAD"),
-            cancellable = true
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;",
+                    opcode = Opcodes.GETFIELD
+            )
     )
-    private void drawAdvancementTreeInject(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
-        if (isSearchActive && searchTab.widgets.size() > 1) {
-            searchTab.render(context, x + WINDOW_BORDER_SIZE, y + WINDOW_HEADER_HEIGHT);
-            ci.cancel();
-        }
+    private @Nullable AdvancementTab drawAdvancementTreeInject(AdvancementsScreen instance) {
+        return !isSearchActive ? selectedTab : searchTab.widgets.size() > 1 ? searchTab : null;
     }
 
     @ModifyArgs(
@@ -434,18 +449,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         return isSearchActive ? searchTab : selectedTab;
     }
 
-    @Redirect(
-            method = "drawAdvancementTree",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;selectedTab:Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;",
-                    opcode = Opcodes.GETFIELD
-            )
-    )
-    private @Nullable AdvancementTab drawAdvancementTreeRedirect(AdvancementsScreen instance) {
-        return isSearchActive && searchTab.widgets.size() <= 1 ? null : selectedTab;
-    }
-
     @Inject(method = "init", at = @At(value = "TAIL"))
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
@@ -476,7 +479,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     ItemStack.EMPTY,
                     Text.empty(),
                     Text.empty(),
-                    Optional.of(new Identifier("textures/block/" + Registries.BLOCK.getId(Blocks.BLACK_CONCRETE).getPath() + ".png")),
+                    Optional.empty(),
                     AdvancementFrame.TASK,
                     false,
                     false,
@@ -507,6 +510,20 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             method = "render",
             at = @At(
                     value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;renderBackground(Lnet/minecraft/client/gui/DrawContext;IIF)V",
+                    shift = At.Shift.BEFORE
+            ),
+            locals = LocalCapture.CAPTURE_FAILHARD
+    )
+    public void getWindowSizes(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
+        windowWidth = Math.abs(i * 2 - width);
+        windowHeight = Math.abs(j * 2 - height);
+    }
+
+    @Inject(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWindow(Lnet/minecraft/client/gui/DrawContext;II)V",
                     shift = At.Shift.AFTER
             ),
@@ -514,11 +531,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
         if (searchField != null) {
-            windowWidth = Math.abs(i * 2 - width);
-            windowHeight = Math.abs(j * 2 - height);
             int frameOffset = 1;
             int frameContainerWidth = frameOffset + WIDGET_SIZE + frameOffset;
-            int treeWidth = windowWidth - WINDOW_BORDER_SIZE * 2;
+            int treeWidth = advancementssearch$getWindowWidth(false);
             int columnsCount = treeWidth / frameContainerWidth;
             int rowWidth = frameContainerWidth * columnsCount;
             int horizontalOffset = treeWidth - rowWidth - TREE_X_OFFSET;
