@@ -16,7 +16,7 @@ public class AdvancementWidgetMixin {
 
     @Shadow
     @Final
-    private AdvancementTab tab;
+    public AdvancementTab tab;
 
     @Inject(
             method = "renderLines",

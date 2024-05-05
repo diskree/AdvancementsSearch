@@ -58,6 +58,18 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private static final int SEARCH_FIELD_HEIGHT = 12;
 
     @Unique
+    private static final int WINDOW_BORDER_SIZE = 9;
+
+    @Unique
+    private static final int WINDOW_HEADER_HEIGHT = 18;
+
+    @Unique
+    private static final int WIDGET_SIZE = 26;
+
+    @Unique
+    private static final int TREE_X_OFFSET = 3;
+
+    @Unique
     private TextFieldWidget searchField;
 
     @Unique
@@ -83,6 +95,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private AdvancementWidget focusedAdvancementWidget;
+
+    @Unique
+    private int windowWidth;
+
+    @Unique
+    private int windowHeight;
+
+    @Unique
+    private PlacedAdvancement targetAdvancement;
 
     @Shadow
     @Final
@@ -287,7 +308,28 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private void openAdvancement(PlacedAdvancement placedAdvancement) {
+        isSearchActive = false;
+        targetAdvancement = placedAdvancement;
+        advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
+    }
 
+    @Inject(
+            method = "drawAdvancementTree",
+            at = @At("TAIL")
+    )
+    private void jumpToTargetAdvancement(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
+        if (targetAdvancement != null && selectedTab != null) {
+            for (AdvancementWidget widget : selectedTab.widgets.values()) {
+                if (widget != null && widget.advancement == targetAdvancement) {
+                    selectedTab.move(
+                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) WIDGET_SIZE / 2 - ((double) windowWidth - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE) / 2),
+                            -(selectedTab.originY + widget.getY() + (double) WIDGET_SIZE / 2 - ((double) windowHeight - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE) / 2)
+                    );
+                    targetAdvancement = null;
+                    break;
+                }
+            }
+        }
     }
 
     @Redirect(
@@ -309,7 +351,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     private void drawAdvancementTreeInject(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
         if (isSearchActive && searchTab.widgets.size() > 1) {
-            searchTab.render(context, x + 9, y + 18);
+            searchTab.render(context, x + WINDOW_BORDER_SIZE, y + WINDOW_HEADER_HEIGHT);
             ci.cancel();
         }
     }
@@ -391,7 +433,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         return isSearchActive && searchTab.widgets.size() <= 1 ? null : selectedTab;
     }
 
-    @Inject(method = "init", at = @At(value = "RETURN"))
+    @Inject(method = "init", at = @At(value = "TAIL"))
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
         searchField.setDrawsBackground(false);
@@ -459,15 +501,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
         if (searchField != null) {
-            int windowWidth = Math.abs(i * 2 - width);
-            int frameWidth = 26;
+            windowWidth = Math.abs(i * 2 - width);
+            windowHeight = Math.abs(j * 2 - height);
             int frameOffset = 1;
-            int borderWidth = 9;
-            int frameContainerWidth = frameOffset + frameWidth + frameOffset;
-            int treeWidth = windowWidth - borderWidth * 2;
+            int frameContainerWidth = frameOffset + WIDGET_SIZE + frameOffset;
+            int treeWidth = windowWidth - WINDOW_BORDER_SIZE * 2;
             int columnsCount = treeWidth / frameContainerWidth;
             int rowWidth = frameContainerWidth * columnsCount;
-            int horizontalOffset = treeWidth - rowWidth - 3;
+            int horizontalOffset = treeWidth - rowWidth - TREE_X_OFFSET;
             int originX = horizontalOffset / 2;
             if (searchResultsColumnsCount != columnsCount || searchResultsOriginX != originX) {
                 searchResultsColumnsCount = columnsCount;
@@ -478,7 +519,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             }
 
             int symmetryFixX = 1;
-            int fieldX = i + windowWidth - borderWidth - SEARCH_FIELD_WIDTH + symmetryFixX;
+            int fieldX = i + windowWidth - WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = j + 4;
 
             context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
