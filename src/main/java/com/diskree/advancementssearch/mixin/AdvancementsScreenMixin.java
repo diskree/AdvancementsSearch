@@ -15,7 +15,6 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
@@ -602,7 +601,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (focusedAdvancementWidget != null &&
                 focusedAdvancementWidget.tab != null &&
                 focusedAdvancementWidget.tab == searchTab &&
-                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_CONTROL)
+                button == 1
         ) {
             for (PlacedAdvancement placedAdvancement : getAdvancements()) {
                 if (placedAdvancement.getAdvancementEntry().id().equals(focusedAdvancementWidget.advancement.getAdvancementEntry().id())) {
