@@ -2,7 +2,7 @@ package com.diskree.advancementssearch.mixin;
 
 import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
-import com.diskree.advancementssearch.RandomAdvancementButtonWidget;
+import com.diskree.advancementssearch.DiceButton;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
@@ -79,7 +79,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private TextFieldWidget searchField;
 
     @Unique
-    private RandomAdvancementButtonWidget randomAdvancementButton;
+    private DiceButton randomAdvancementButton;
 
     @Unique
     private PlacedAdvancement searchRootAdvancement;
@@ -351,13 +351,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private void openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
+    private boolean openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
         if (targetAdvancement != null) {
-            return;
+            return false;
         }
         isSearchActive = false;
         targetAdvancement = placedAdvancement;
         advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
+        return true;
     }
 
     @Shadow
@@ -501,9 +502,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         searchField.setMaxLength(50);
         setInitialFocus(searchField);
 
-        randomAdvancementButton = new RandomAdvancementButtonWidget(button -> {
+        randomAdvancementButton = new DiceButton(() -> {
             if (client == null || client.player == null) {
-                return;
+                return false;
             }
             Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
             ArrayList<PlacedAdvancement> notObtainedAdvancements = new ArrayList<>();
@@ -513,8 +514,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 }
             }
             if (!notObtainedAdvancements.isEmpty()) {
-                openAdvancement(notObtainedAdvancements.get(client.player.getRandom().nextInt(notObtainedAdvancements.size())));
+                return openAdvancement(notObtainedAdvancements.get(client.player.getRandom().nextInt(notObtainedAdvancements.size())));
             }
+            return false;
         });
 
         if (searchTab == null) {
