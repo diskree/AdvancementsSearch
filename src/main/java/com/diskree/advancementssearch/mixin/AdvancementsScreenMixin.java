@@ -208,8 +208,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 continue;
             }
             AdvancementDisplay display = advancementEntry.value().display().orElse(null);
-            if (display == null || display.isHidden()) {
+            if (display == null) {
                 continue;
+            }
+            if (display.isHidden()) {
+                AdvancementProgress progress = progresses.get(advancementEntry);
+                if (progress == null || !progress.isDone()) {
+                    continue;
+                }
             }
             PlacedAdvancement placedAdvancement = advancementManager.get(advancementEntry);
             if (placedAdvancement == null) {
