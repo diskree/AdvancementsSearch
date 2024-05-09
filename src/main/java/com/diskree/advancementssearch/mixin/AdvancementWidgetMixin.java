@@ -14,6 +14,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.text.*;
+import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Language;
@@ -149,7 +150,14 @@ public abstract class AdvancementWidgetMixin {
             }
             context.drawGuiTexture(TITLE_BOX_TEXTURE, tooltipX, textureY, width, textureHeight);
             for (int line = 0; line < searchResultHint.size(); ++line) {
-                context.drawText(client.textRenderer, searchResultHint.get(line), tooltipX + 5, textY + line * 9, Formatting.GRAY.getColorValue(), false);
+                context.drawText(
+                        client.textRenderer,
+                        searchResultHint.get(line),
+                        tooltipX + 5,
+                        textY + line * 9,
+                        Colors.GRAY,
+                        false
+                );
             }
         }
     }
@@ -161,7 +169,15 @@ public abstract class AdvancementWidgetMixin {
                     target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"
             )
     )
-    private void highlight(DrawContext instance, Identifier texture, int x, int y, int width, int height, Operation<Void> original) {
+    private void highlight(
+            DrawContext instance,
+            Identifier texture,
+            int x,
+            int y,
+            int width,
+            int height,
+            Operation<Void> original
+    ) {
         if (tab != null && tab.getScreen() != null) {
             AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
             if (AdvancementsSearch.isSearch(tab.getRoot()) ||
@@ -177,7 +193,15 @@ public abstract class AdvancementWidgetMixin {
             method = "drawTooltip",
             at = @At(value = "HEAD")
     )
-    public void checkHighlight(DrawContext context, int originX, int originY, float alpha, int x, int y, CallbackInfo ci) {
+    public void checkHighlight(
+            DrawContext context,
+            int originX,
+            int originY,
+            float alpha,
+            int x,
+            int y,
+            CallbackInfo ci
+    ) {
         if (tab != null && tab.getScreen() != null) {
             AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
@@ -195,7 +219,8 @@ public abstract class AdvancementWidgetMixin {
     public boolean cancelTooltipRender(boolean original) {
         if (original && tab != null && tab.getScreen() != null) {
             AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) && screen.advancementssearch$getHighlightedAdvancementId() != null) {
+            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
+                    screen.advancementssearch$getHighlightedAdvancementId() != null) {
                 return screen.advancementssearch$getHighlightedAdvancementId() == advancement.getAdvancementEntry().id();
             }
         }

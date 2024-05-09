@@ -18,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.awt.*;
-
 @Mixin(AdvancementTab.class)
 public class AdvancementTabMixin {
 
@@ -57,7 +55,15 @@ public class AdvancementTabMixin {
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
-    public void resetFocusedAdvancementWidget(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci, @Local(ordinal = 0) boolean bl) {
+    public void resetFocusedAdvancementWidget(
+            DrawContext context,
+            int mouseX,
+            int mouseY,
+            int x,
+            int y,
+            CallbackInfo ci,
+            @Local(ordinal = 0) boolean bl
+    ) {
         if (!bl) {
             ((AdvancementsScreenImpl) screen).advancementssearch$setFocusedAdvancementWidget(null);
         }
@@ -70,7 +76,19 @@ public class AdvancementTabMixin {
                     target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIFFIIII)V"
             )
     )
-    private void cancelBackgroundRenderInSearch(DrawContext instance, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> original) {
+    private void cancelBackgroundRenderInSearch(
+            DrawContext instance,
+            Identifier texture,
+            int x,
+            int y,
+            float u,
+            float v,
+            int width,
+            int height,
+            int textureWidth,
+            int textureHeight,
+            Operation<Void> original
+    ) {
         if (!((AdvancementsScreenImpl) screen).advancementssearch$isSearchActive()) {
             original.call(instance, texture, x, y, u, v, width, height, textureWidth, textureHeight);
         }
@@ -88,7 +106,13 @@ public class AdvancementTabMixin {
     public void drawBlackBackgroundInSearch(DrawContext context, int x, int y, CallbackInfo ci) {
         AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
         if (screenImpl.advancementssearch$isSearchActive()) {
-            context.fill(0, 0, screenImpl.advancementssearch$getWindowWidth(false), screenImpl.advancementssearch$getWindowHeight(false), Colors.BLACK);
+            context.fill(
+                    0,
+                    0,
+                    screenImpl.advancementssearch$getWindowWidth(false),
+                    screenImpl.advancementssearch$getWindowHeight(false),
+                    Colors.BLACK
+            );
         }
     }
 }

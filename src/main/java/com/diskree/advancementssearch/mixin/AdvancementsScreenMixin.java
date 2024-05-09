@@ -2,7 +2,6 @@ package com.diskree.advancementssearch.mixin;
 
 import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
-import com.diskree.advancementssearch.DiceButton;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
@@ -18,7 +17,7 @@ import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,9 +76,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private TextFieldWidget searchField;
-
-    @Unique
-    private DiceButton randomAdvancementButton;
 
     @Unique
     private PlacedAdvancement searchRootAdvancement;
@@ -198,7 +194,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         }
         ArrayList<PlacedAdvancement> advancements = new ArrayList<>();
         AdvancementManager advancementManager = advancementHandler.getManager();
-        Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
+        Map<AdvancementEntry, AdvancementProgress> progresses =
+                client.player.networkHandler.getAdvancementHandler().advancementProgresses;
         for (AdvancementEntry advancementEntry : new ArrayList<>(progresses.keySet())) {
             if (advancementEntry == null) {
                 continue;
@@ -285,7 +282,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
         int rowIndex = 0;
         int columnIndex = 0;
-        Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
+        Map<AdvancementEntry, AdvancementProgress> progresses =
+                client.player.networkHandler.getAdvancementHandler().advancementProgresses;
         PlacedAdvancement rootAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
         PlacedAdvancement parentPlacedAdvancement = rootAdvancement;
         for (PlacedAdvancement searchResult : searchResults) {
@@ -314,17 +312,23 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             if (searchResult.getAdvancement().sendsTelemetryEvent()) {
                 searchResultAdvancementBuilder = searchResultAdvancementBuilder.sendsTelemetryEvent();
             }
-            AdvancementEntry searchResultAdvancementEntry = searchResultAdvancementBuilder.build(searchResult.getAdvancementEntry().id());
-            PlacedAdvancement searchResultPlacedAdvancement = new PlacedAdvancement(searchResultAdvancementEntry, parentPlacedAdvancement);
+            AdvancementEntry searchResultAdvancementEntry =
+                    searchResultAdvancementBuilder.build(searchResult.getAdvancementEntry().id());
+            PlacedAdvancement searchResultPlacedAdvancement =
+                    new PlacedAdvancement(searchResultAdvancementEntry, parentPlacedAdvancement);
 
             searchTab.addAdvancement(searchResultPlacedAdvancement);
-            searchTab.widgets.get(searchResultAdvancementEntry).setProgress(progresses.get(searchResultAdvancementEntry));
+            searchTab.widgets.get(searchResultAdvancementEntry)
+                    .setProgress(progresses.get(searchResultAdvancementEntry));
             if (columnIndex == searchResultsColumnsCount - 1) {
                 parentPlacedAdvancement = rootAdvancement;
                 columnIndex = 0;
                 rowIndex++;
             } else {
-                parentPlacedAdvancement = new PlacedAdvancement(searchResultAdvancementEntry, searchResultPlacedAdvancement);
+                parentPlacedAdvancement = new PlacedAdvancement(
+                        searchResultAdvancementEntry,
+                        searchResultPlacedAdvancement
+                );
                 columnIndex++;
             }
         }
@@ -357,14 +361,13 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private boolean openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
+    private void openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
         if (targetAdvancement != null) {
-            return false;
+            return;
         }
         isSearchActive = false;
         targetAdvancement = placedAdvancement;
         advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
-        return true;
     }
 
     @Shadow
@@ -382,9 +385,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (targetAdvancement != null && selectedTab != null) {
             for (AdvancementWidget widget : selectedTab.widgets.values()) {
                 if (widget != null && widget.advancement == targetAdvancement) {
+                    int centerX = (WIDGET_SIZE - advancementssearch$getWindowWidth(false)) / 2;
+                    int centerY = (WIDGET_SIZE - advancementssearch$getWindowHeight(false)) / 2;
                     selectedTab.move(
-                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) WIDGET_SIZE / 2 - ((double) advancementssearch$getWindowWidth(false)) / 2),
-                            -(selectedTab.originY + widget.getY() + (double) WIDGET_SIZE / 2 - ((double) advancementssearch$getWindowHeight(false)) / 2)
+                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) centerX),
+                            -(selectedTab.originY + widget.getY() + centerY)
                     );
                     targetAdvancement = null;
                     highlightedAdvancementId = widget.advancement.getAdvancementEntry().id();
@@ -442,9 +447,17 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     ordinal = 1
             )
     )
-    private void cancelSadLabelRenderInSearch(DrawContext instance, TextRenderer textRenderer, Text text, int centerX, int y, int color, Operation<Void> original) {
+    private void cancelSadLabelRenderInSearch(
+            DrawContext context,
+            TextRenderer textRenderer,
+            Text text,
+            int centerX,
+            int y,
+            int color,
+            Operation<Void> original
+    ) {
         if (!isSearchActive) {
-            original.call(instance, textRenderer, text, centerX, y, color);
+            original.call(context, textRenderer, text, centerX, y, color);
         }
     }
 
@@ -469,11 +482,18 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(Lnet/minecraft/client/gui/DrawContext;IIII)V"
             )
     )
-    private void drawWidgetTooltipRedirectTab(AdvancementTab instance, DrawContext context, int mouseX, int mouseY, int x, int y) {
+    private void drawWidgetTooltipRedirectTab(
+            AdvancementTab selectedTab,
+            DrawContext context,
+            int mouseX,
+            int mouseY,
+            int x,
+            int y
+    ) {
         if (isSearchActive) {
-            instance = searchTab;
+            selectedTab = searchTab;
         }
-        instance.drawWidgetTooltip(context, mouseX, mouseY, x, y);
+        selectedTab.drawWidgetTooltip(context, mouseX, mouseY, x, y);
     }
 
     @Redirect(
@@ -504,26 +524,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
         searchField.setDrawsBackground(false);
-        searchField.setEditableColor(Formatting.WHITE.getColorValue());
+        searchField.setEditableColor(Colors.WHITE);
         searchField.setMaxLength(50);
         setInitialFocus(searchField);
-
-        randomAdvancementButton = new DiceButton(() -> {
-            if (client == null || client.player == null) {
-                return false;
-            }
-            Map<AdvancementEntry, AdvancementProgress> progresses = client.player.networkHandler.getAdvancementHandler().advancementProgresses;
-            ArrayList<PlacedAdvancement> notObtainedAdvancements = new ArrayList<>();
-            for (PlacedAdvancement placedAdvancement : getAdvancements()) {
-                if (!progresses.get(placedAdvancement.getAdvancementEntry()).isDone()) {
-                    notObtainedAdvancements.add(placedAdvancement);
-                }
-            }
-            if (!notObtainedAdvancements.isEmpty()) {
-                return openAdvancement(notObtainedAdvancements.get(client.player.getRandom().nextInt(notObtainedAdvancements.size())));
-            }
-            return false;
-        });
 
         if (searchTab == null) {
             AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
@@ -566,9 +569,17 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
-    public void getWindowSizes(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
-        windowWidth = Math.abs(i * 2 - width);
-        windowHeight = Math.abs(j * 2 - height);
+    public void getWindowSizes(
+            DrawContext context,
+            int mouseX,
+            int mouseY,
+            float delta,
+            CallbackInfo ci,
+            int centerX,
+            int centerY
+    ) {
+        windowWidth = Math.abs(centerX * 2 - width);
+        windowHeight = Math.abs(centerY * 2 - height);
     }
 
     @Inject(
@@ -601,7 +612,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int fieldX = i + windowWidth - WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = j + 4;
 
-            context.drawTexture(CREATIVE_INVENTORY_TEXTURE, fieldX, fieldY, SEARCH_FIELD_UV.x, SEARCH_FIELD_UV.y, SEARCH_FIELD_WIDTH, SEARCH_FIELD_HEIGHT);
+            context.drawTexture(
+                    CREATIVE_INVENTORY_TEXTURE,
+                    fieldX,
+                    fieldY,
+                    SEARCH_FIELD_UV.x,
+                    SEARCH_FIELD_UV.y,
+                    SEARCH_FIELD_WIDTH,
+                    SEARCH_FIELD_HEIGHT
+            );
 
             int leftTextOffset = 2;
             int rightTextOffset = 8;
@@ -610,10 +629,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             searchField.setWidth(SEARCH_FIELD_WIDTH - leftTextOffset - rightTextOffset);
             searchField.setHeight(SEARCH_FIELD_HEIGHT - leftTextOffset);
             searchField.render(context, mouseX, mouseY, delta);
-
-            randomAdvancementButton.setX(fieldX - randomAdvancementButton.getWidth() - 3);
-            randomAdvancementButton.setY(fieldY);
-            randomAdvancementButton.render(context, mouseX, mouseY, delta);
         }
     }
 
@@ -647,16 +662,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             checkSearchActive();
             cir.setReturnValue(true);
         }
-        if (randomAdvancementButton != null && randomAdvancementButton.mouseClicked(mouseX, mouseY, button)) {
-            cir.setReturnValue(true);
-        }
         if (focusedAdvancementWidget != null &&
                 focusedAdvancementWidget.tab != null &&
                 focusedAdvancementWidget.tab == searchTab &&
                 button == 1
         ) {
             for (PlacedAdvancement placedAdvancement : getAdvancements()) {
-                if (placedAdvancement.getAdvancementEntry().id().equals(focusedAdvancementWidget.advancement.getAdvancementEntry().id())) {
+                if (placedAdvancement.getAdvancementEntry().id().equals(
+                        focusedAdvancementWidget.advancement.getAdvancementEntry().id()
+                )) {
                     openAdvancement(placedAdvancement);
                     cir.setReturnValue(true);
                     break;

@@ -4,6 +4,7 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.util.Identifier;
 
 public interface AdvancementsScreenImpl {
+
     void advancementssearch$setFocusedAdvancementWidget(AdvancementWidget focusedAdvancementWidget);
 
     boolean advancementssearch$isSearchActive();
