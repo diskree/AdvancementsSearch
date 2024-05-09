@@ -14,7 +14,7 @@
 	"icon": "assets/advancementssearch/icon.png",
 	"environment": "client",
 	"entrypoints": {
-		"main": [
+		"client": [
 			"com.diskree.advancementssearch.AdvancementsSearch"
 		]
 	},

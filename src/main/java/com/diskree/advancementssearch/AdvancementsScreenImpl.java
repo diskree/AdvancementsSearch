@@ -18,4 +18,8 @@ public interface AdvancementsScreenImpl {
     boolean advancementssearch$isHighlightAtInvisibleState();
 
     void advancementssearch$stopHighlight();
+
+    void advancementssearch$search(String query);
+
+    void advancementssearch$openAdvancement(Identifier identifier);
 }

@@ -1,10 +1,20 @@
 package com.diskree.advancementssearch;
 
-import net.fabricmc.api.ModInitializer;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.advancement.PlacedAdvancement;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
+import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 
-public class AdvancementsSearch implements ModInitializer {
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+
+public class AdvancementsSearch implements ClientModInitializer {
 
     public static final Identifier ADVANCEMENTS_SEARCH_ID =
             new Identifier(BuildConfig.MOD_ID, BuildConfig.MOD_ID + "/root");
@@ -14,6 +24,40 @@ public class AdvancementsSearch implements ModInitializer {
     }
 
     @Override
-    public void onInitialize() {
+    public void onInitializeClient() {
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
+                dispatcher.register(literal(BuildConfig.MOD_ID)
+                        .then(literal("search").then(argument("query", StringArgumentType.string()).executes(
+                                context -> search(
+                                        context.getSource().getClient(),
+                                        StringArgumentType.getString(context, "query")
+                                )
+                        )))
+                        .then(literal("open").then(argument("identifier", IdentifierArgumentType.identifier()).executes(
+                                context -> openAdvancement(
+                                        context.getSource().getClient(),
+                                        context.getArgument("identifier", Identifier.class)
+                                )
+                        )))
+                )
+        );
+    }
+
+    private int search(@NotNull MinecraftClient client, String query) {
+        if (client.player != null) {
+            AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
+            client.setScreen(screen);
+            ((AdvancementsScreenImpl) screen).advancementssearch$search(query);
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int openAdvancement(@NotNull MinecraftClient client, Identifier identifier) {
+        if (client.player != null) {
+            AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
+            client.setScreen(screen);
+            ((AdvancementsScreenImpl) screen).advancementssearch$openAdvancement(identifier);
+        }
+        return Command.SINGLE_SUCCESS;
     }
 }

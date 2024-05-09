@@ -84,7 +84,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private AdvancementTab searchTab;
 
     @Unique
-    private ArrayList<PlacedAdvancement> searchResults;
+    private final ArrayList<PlacedAdvancement> searchResults = new ArrayList<>();
 
     @Unique
     private boolean isSearchActive;
@@ -151,6 +151,23 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     public void advancementssearch$stopHighlight() {
         highlightedAdvancementId = null;
         widgetHighlightCounter = 0;
+    }
+
+    @Override
+    public void advancementssearch$search(String query) {
+        if (searchField != null) {
+            searchField.setText(query);
+        }
+    }
+
+    @Override
+    public void advancementssearch$openAdvancement(Identifier identifier) {
+        for (PlacedAdvancement placedAdvancement : getAdvancements()) {
+            if (identifier.equals(placedAdvancement.getAdvancementEntry().id())) {
+                openAdvancement(placedAdvancement);
+                break;
+            }
+        }
     }
 
     @Override
@@ -235,7 +252,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         checkSearchActive();
         String query = searchField.getText().toLowerCase(Locale.ROOT);
 
-        searchResults = new ArrayList<>();
+        searchResults.clear();
         for (PlacedAdvancement placedAdvancement : getAdvancements()) {
             AdvancementDisplay display = placedAdvancement.getAdvancement().display().orElse(null);
             if (display == null) {
@@ -381,7 +398,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             method = "drawAdvancementTree",
             at = @At("TAIL")
     )
-    private void jumpToTargetAdvancement(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
+    private void openTargetAdvancement(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
         if (targetAdvancement != null && selectedTab != null) {
             for (AdvancementWidget widget : selectedTab.widgets.values()) {
                 if (widget != null && widget.advancement == targetAdvancement) {
@@ -646,7 +663,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 }
                 cir.setReturnValue(true);
             }
-            if (searchField.isFocused() && searchField.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+            if (keyCode != GLFW.GLFW_KEY_ESCAPE) {
                 cir.setReturnValue(true);
             }
         }
