@@ -42,23 +42,32 @@ public class AdvancementsSearch implements ClientModInitializer {
             dispatcher.register(literal(BuildConfig.MOD_ID)
                 .then(literal("search")
                     .then(argument("query", StringArgumentType.string())
-                        .then(argument("by", StringArgumentType.word()).suggests(new SearchByTypeSuggestionProvider())
-                            .then(argument("autoOpenWhenSingleSearchResult", BoolArgumentType.bool())
-                                .executes(context -> search(
-                                    context.getSource().getClient(),
-                                    StringArgumentType.getString(context, "query"),
-                                    SearchByType.map(StringArgumentType.getString(context, "by")),
-                                    BoolArgumentType.getBool(context, "autoOpenWhenSingleSearchResult"))
+                        .then(argument("by", StringArgumentType.word())
+                            .suggests(new SearchByTypeSuggestionProvider())
+                            .then(argument("autoHighlightSingle", BoolArgumentType.bool())
+                                .then(argument("highlightType", StringArgumentType.word())
+                                    .suggests(new HighlightTypeSuggestionProvider())
+                                    .executes(context -> search(
+                                        context.getSource().getClient(),
+                                        StringArgumentType.getString(context, "query"),
+                                        SearchByType.map(StringArgumentType.getString(context, "by")),
+                                        BoolArgumentType.getBool(context, "autoHighlightSingle"),
+                                        HighlightType.map(StringArgumentType.getString(context, "highlightType")))
+                                    )
                                 )
                             )
                         )
                     )
                 )
-                .then(literal("open")
-                    .then(argument("identifier", IdentifierArgumentType.identifier())
-                        .executes(context -> openAdvancement(
-                            context.getSource().getClient(),
-                            context.getArgument("identifier", Identifier.class))
+                .then(literal("highlight")
+                    .then(argument("advancementId", IdentifierArgumentType.identifier())
+                        .then(argument("highlightType", StringArgumentType.word())
+                            .suggests(new HighlightTypeSuggestionProvider())
+                            .executes(context -> highlight(
+                                context.getSource().getClient(),
+                                context.getArgument("advancementId", Identifier.class),
+                                HighlightType.map(StringArgumentType.getString(context, "highlightType")))
+                            )
                         )
                     )
                 )
@@ -80,28 +89,47 @@ public class AdvancementsSearch implements ClientModInitializer {
         }
     }
 
+    public static class HighlightTypeSuggestionProvider implements SuggestionProvider<FabricClientCommandSource> {
+
+        @Override
+        public CompletableFuture<Suggestions> getSuggestions(
+            CommandContext<FabricClientCommandSource> context,
+            SuggestionsBuilder builder
+        ) {
+            for (HighlightType type : HighlightType.values()) {
+                builder.suggest(type.name().toLowerCase(Locale.ROOT));
+            }
+            return builder.buildFuture();
+        }
+    }
+
     private int search(
         @NotNull MinecraftClient client,
         String query,
         SearchByType searchByType,
-        boolean shouldAutoOpenWhenSingleSearchResult
+        boolean autoHighlightSingle,
+        HighlightType highlightType
     ) {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
             if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
-                screenImpl.advancementssearch$search(query, searchByType, shouldAutoOpenWhenSingleSearchResult);
+                screenImpl.advancementssearch$search(query, searchByType, autoHighlightSingle, highlightType);
             }
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private int openAdvancement(@NotNull MinecraftClient client, Identifier identifier) {
+    private int highlight(
+        @NotNull MinecraftClient client,
+        Identifier advancementId,
+        HighlightType highlightType
+    ) {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
             if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
-                screenImpl.advancementssearch$openAdvancement(identifier);
+                screenImpl.advancementssearch$highlightAdvancement(advancementId, highlightType);
             }
         }
         return Command.SINGLE_SUCCESS;

@@ -15,6 +15,8 @@ public interface AdvancementsScreenImpl {
 
     Identifier advancementssearch$getHighlightedAdvancementId();
 
+    HighlightType advancementssearch$getHighlightType();
+
     boolean advancementssearch$isHighlightAtInvisibleState();
 
     void advancementssearch$stopHighlight();
@@ -22,8 +24,9 @@ public interface AdvancementsScreenImpl {
     void advancementssearch$search(
         String query,
         SearchByType searchByType,
-        boolean shouldAutoOpenWhenSingleSearchResult
+        boolean autoHighlightSingle,
+        HighlightType highlightType
     );
 
-    void advancementssearch$openAdvancement(Identifier identifier);
+    void advancementssearch$highlightAdvancement(Identifier advancementId, HighlightType highlightType);
 }

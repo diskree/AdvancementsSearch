@@ -2,6 +2,7 @@ package com.diskree.advancementssearch.mixin;
 
 import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -116,10 +117,13 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private int treeHeight;
 
     @Unique
-    private PlacedAdvancement targetAdvancement;
+    private PlacedAdvancement highlightedAdvancement;
 
     @Unique
     private Identifier highlightedAdvancementId;
+
+    @Unique
+    private HighlightType highlightType;
 
     @Unique
     private int widgetHighlightCounter;
@@ -154,6 +158,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
+    public HighlightType advancementssearch$getHighlightType() {
+        return highlightType;
+    }
+
+    @Override
     public boolean advancementssearch$isHighlightAtInvisibleState() {
         return widgetHighlightCounter != 0 && (widgetHighlightCounter / WIDGET_HIGHLIGHT_TICKS) % 2 == 0;
     }
@@ -161,6 +170,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Override
     public void advancementssearch$stopHighlight() {
         highlightedAdvancementId = null;
+        highlightType = null;
         widgetHighlightCounter = 0;
     }
 
@@ -168,11 +178,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     public void advancementssearch$search(
         String query,
         SearchByType searchByType,
-        boolean shouldAutoOpenWhenSingleSearchResult
+        boolean autoHighlightSingle,
+        HighlightType highlightType
     ) {
         searchInternal(query, searchByType);
-        if (shouldAutoOpenWhenSingleSearchResult && searchResults.size() == 1) {
-            openAdvancement(searchResults.get(0));
+        if (autoHighlightSingle && searchResults.size() == 1) {
+            highlight(searchResults.get(0), highlightType);
             searchResults.clear();
             return;
         }
@@ -183,10 +194,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public void advancementssearch$openAdvancement(Identifier identifier) {
-        for (PlacedAdvancement placedAdvancement : getAdvancements()) {
-            if (identifier.equals(placedAdvancement.getAdvancementEntry().id())) {
-                openAdvancement(placedAdvancement);
+    public void advancementssearch$highlightAdvancement(Identifier advancementId, HighlightType highlightType) {
+        for (PlacedAdvancement advancement : getAdvancements()) {
+            if (advancementId.equals(advancement.getAdvancementEntry().id())) {
+                highlight(advancement, highlightType);
                 break;
             }
         }
@@ -400,13 +411,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private void openAdvancement(@NotNull PlacedAdvancement placedAdvancement) {
-        if (targetAdvancement != null) {
+    private void highlight(@NotNull PlacedAdvancement advancement, HighlightType type) {
+        if (highlightedAdvancement != null) {
             return;
         }
         isSearchActive = false;
-        targetAdvancement = placedAdvancement;
-        advancementHandler.selectTab(placedAdvancement.getRoot().getAdvancementEntry(), true);
+        highlightedAdvancement = advancement;
+        highlightType = type;
+        advancementHandler.selectTab(advancement.getRoot().getAdvancementEntry(), true);
     }
 
     @Shadow
@@ -420,19 +432,19 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawAdvancementTree",
         at = @At("TAIL")
     )
-    private void openTargetAdvancement(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
-        if (targetAdvancement == null || selectedTab == null) {
+    private void startHighlight(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
+        if (highlightedAdvancement == null || selectedTab == null) {
             return;
         }
         for (AdvancementWidget widget : selectedTab.widgets.values()) {
-            if (widget != null && widget.advancement == targetAdvancement) {
+            if (widget != null && widget.advancement == highlightedAdvancement) {
                 int centerX = (WIDGET_SIZE - advancementssearch$getTreeWidth()) / 2;
                 int centerY = (WIDGET_SIZE - advancementssearch$getTreeHeight()) / 2;
                 selectedTab.move(
                     -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + centerX),
                     -(selectedTab.originY + widget.getY() + centerY)
                 );
-                targetAdvancement = null;
+                highlightedAdvancement = null;
                 highlightedAdvancementId = widget.advancement.getAdvancementEntry().id();
                 widgetHighlightCounter = WIDGET_HIGHLIGHT_COUNT * 2 * WIDGET_HIGHLIGHT_TICKS;
                 break;
@@ -723,9 +735,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             button == MouseEvent.BUTTON1
         ) {
             Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
-            for (PlacedAdvancement placedAdvancement : getAdvancements()) {
-                if (placedAdvancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
-                    openAdvancement(placedAdvancement);
+            for (PlacedAdvancement advancement : getAdvancements()) {
+                if (advancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
+                    highlight(advancement, HighlightType.WIDGET);
                     cir.setReturnValue(true);
                     break;
                 }
