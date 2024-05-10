@@ -76,6 +76,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private static final int WIDGET_HIGHLIGHT_TICKS = 3;
 
     @Unique
+    private static final int SEARCH_FIELD_TEXT_LEFT_OFFSET = 2;
+
+    @Unique
     private TextFieldWidget searchField;
 
     @Unique
@@ -98,6 +101,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private AdvancementWidget focusedAdvancementWidget;
+
+    @Unique
+    private int windowX;
+
+    @Unique
+    private int windowY;
 
     @Unique
     private int treeWidth;
@@ -158,6 +167,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     public void advancementssearch$search(String query) {
         if (searchField != null) {
             searchField.setText(query);
+            search();
         }
     }
 
@@ -545,10 +555,17 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             at = @At(value = "TAIL")
     )
     public void initInject(CallbackInfo ci) {
-        searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
+        searchField = new TextFieldWidget(
+                textRenderer,
+                0,
+                0,
+                SEARCH_FIELD_WIDTH - SEARCH_FIELD_TEXT_LEFT_OFFSET - 8,
+                textRenderer.fontHeight,
+                ScreenTexts.EMPTY
+        );
         searchField.setDrawsBackground(false);
         searchField.setEditableColor(Colors.WHITE);
-        searchField.setMaxLength(50);
+        addSelectableChild(searchField);
         setInitialFocus(searchField);
 
         if (searchTab == null) {
@@ -601,6 +618,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int windowX,
             int windowY
     ) {
+        this.windowX = windowX;
+        this.windowY = windowY;
         treeWidth = Math.abs(windowX * 2 - width) - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE;
         treeHeight = Math.abs(windowY * 2 - height) - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
     }
@@ -611,22 +630,18 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWindow(Lnet/minecraft/client/gui/DrawContext;II)V",
                     shift = At.Shift.AFTER
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
+            )
     )
     public void renderInject(
             DrawContext context,
             int mouseX,
             int mouseY,
             float delta,
-            CallbackInfo ci,
-            int windowX,
-            int windowY
+            CallbackInfo ci
     ) {
         if (searchField != null) {
             int frameOffset = 1;
             int frameContainerWidth = frameOffset + WIDGET_SIZE + frameOffset;
-            int treeWidth = advancementssearch$getTreeWidth();
             int columnsCount = treeWidth / frameContainerWidth;
             int rowWidth = frameContainerWidth * columnsCount;
             int horizontalOffset = treeWidth - rowWidth - TREE_X_OFFSET;
@@ -640,7 +655,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             }
 
             int symmetryFixX = 1;
-            int fieldX = windowX + this.treeWidth + WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
+            int fieldX = windowX + treeWidth + WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = windowY + 4;
 
             context.drawTexture(
@@ -653,12 +668,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     SEARCH_FIELD_HEIGHT
             );
 
-            int leftTextOffset = 2;
-            int rightTextOffset = 8;
-            searchField.setX(fieldX + leftTextOffset);
-            searchField.setY(fieldY + leftTextOffset);
-            searchField.setWidth(SEARCH_FIELD_WIDTH - leftTextOffset - rightTextOffset);
-            searchField.setHeight(SEARCH_FIELD_HEIGHT - leftTextOffset);
+            searchField.setX(fieldX + SEARCH_FIELD_TEXT_LEFT_OFFSET);
+            searchField.setY(fieldY + SEARCH_FIELD_TEXT_LEFT_OFFSET);
             searchField.render(context, mouseX, mouseY, delta);
         }
     }
