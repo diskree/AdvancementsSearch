@@ -39,15 +39,7 @@ public abstract class AdvancementWidgetMixin {
 
     @Shadow
     @Final
-    public AdvancementTab tab;
-
-    @Shadow
-    @Final
     private static Identifier TITLE_BOX_TEXTURE;
-
-    @Shadow
-    @Final
-    private int width;
 
     @Shadow
     @Final
@@ -55,14 +47,22 @@ public abstract class AdvancementWidgetMixin {
 
     @Shadow
     @Final
-    private int y;
-
-    @Shadow
-    protected abstract List<StringVisitable> wrapDescription(Text text, int width);
+    public AdvancementTab tab;
 
     @Shadow
     @Final
     public PlacedAdvancement advancement;
+
+    @Shadow
+    @Final
+    private int width;
+
+    @Shadow
+    @Final
+    private int y;
+
+    @Shadow
+    protected abstract List<StringVisitable> wrapDescription(Text text, int width);
 
     @Inject(
             method = "<init>",
@@ -170,7 +170,7 @@ public abstract class AdvancementWidgetMixin {
             )
     )
     private void highlight(
-            DrawContext instance,
+            DrawContext context,
             Identifier texture,
             int x,
             int y,
@@ -178,13 +178,13 @@ public abstract class AdvancementWidgetMixin {
             int height,
             Operation<Void> original
     ) {
-        if (tab != null && tab.getScreen() != null) {
-            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
+        if (tab != null && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (AdvancementsSearch.isSearch(tab.getRoot()) ||
-                    screen.advancementssearch$getHighlightedAdvancementId() == null ||
-                    screen.advancementssearch$getHighlightedAdvancementId() != advancement.getAdvancementEntry().id() ||
-                    !screen.advancementssearch$isHighlightAtInvisibleState()) {
-                original.call(instance, texture, x, y, width, height);
+                    highlightedAdvancementId == null ||
+                    highlightedAdvancementId != advancement.getAdvancementEntry().id() ||
+                    !screenImpl.advancementssearch$isHighlightAtInvisibleState()) {
+                original.call(context, texture, x, y, width, height);
             }
         }
     }
@@ -202,12 +202,12 @@ public abstract class AdvancementWidgetMixin {
             int y,
             CallbackInfo ci
     ) {
-        if (tab != null && tab.getScreen() != null) {
-            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
+        if (tab != null && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
-                    screen.advancementssearch$getHighlightedAdvancementId() != null &&
-                    screen.advancementssearch$getHighlightedAdvancementId() == advancement.getAdvancementEntry().id()) {
-                screen.advancementssearch$stopHighlight();
+                    highlightedAdvancementId != null &&
+                    highlightedAdvancementId == advancement.getAdvancementEntry().id()) {
+                screenImpl.advancementssearch$stopHighlight();
             }
         }
     }
@@ -217,11 +217,10 @@ public abstract class AdvancementWidgetMixin {
             at = @At(value = "TAIL")
     )
     public boolean cancelTooltipRender(boolean original) {
-        if (original && tab != null && tab.getScreen() != null) {
-            AdvancementsScreenImpl screen = (AdvancementsScreenImpl) tab.getScreen();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
-                    screen.advancementssearch$getHighlightedAdvancementId() != null) {
-                return screen.advancementssearch$getHighlightedAdvancementId() == advancement.getAdvancementEntry().id();
+        if (original && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
+            if (!AdvancementsSearch.isSearch(tab.getRoot()) && highlightedAdvancementId != null) {
+                return highlightedAdvancementId == advancement.getAdvancementEntry().id();
             }
         }
         return original;

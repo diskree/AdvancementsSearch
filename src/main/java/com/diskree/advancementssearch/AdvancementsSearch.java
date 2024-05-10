@@ -47,7 +47,9 @@ public class AdvancementsSearch implements ClientModInitializer {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
-            ((AdvancementsScreenImpl) screen).advancementssearch$search(query);
+            if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
+                screenImpl.advancementssearch$search(query);
+            }
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -56,7 +58,9 @@ public class AdvancementsSearch implements ClientModInitializer {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
-            ((AdvancementsScreenImpl) screen).advancementssearch$openAdvancement(identifier);
+            if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
+                screenImpl.advancementssearch$openAdvancement(identifier);
+            }
         }
         return Command.SINGLE_SUCCESS;
     }

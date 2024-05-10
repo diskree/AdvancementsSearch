@@ -43,7 +43,9 @@ public class AdvancementTabMixin {
             CallbackInfo ci,
             @Local(ordinal = 0) AdvancementWidget advancementWidget
     ) {
-        ((AdvancementsScreenImpl) screen).advancementssearch$setFocusedAdvancementWidget(advancementWidget);
+        if (screen instanceof AdvancementsScreenImpl screenImpl) {
+            screenImpl.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
+        }
     }
 
     @Inject(
@@ -62,10 +64,10 @@ public class AdvancementTabMixin {
             int x,
             int y,
             CallbackInfo ci,
-            @Local(ordinal = 0) boolean bl
+            @Local(ordinal = 0) boolean shouldShowTooltip
     ) {
-        if (!bl) {
-            ((AdvancementsScreenImpl) screen).advancementssearch$setFocusedAdvancementWidget(null);
+        if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl screenImpl) {
+            screenImpl.advancementssearch$setFocusedAdvancementWidget(null);
         }
     }
 
@@ -77,7 +79,7 @@ public class AdvancementTabMixin {
             )
     )
     private void cancelBackgroundRenderInSearch(
-            DrawContext instance,
+            DrawContext context,
             Identifier texture,
             int x,
             int y,
@@ -89,8 +91,8 @@ public class AdvancementTabMixin {
             int textureHeight,
             Operation<Void> original
     ) {
-        if (!((AdvancementsScreenImpl) screen).advancementssearch$isSearchActive()) {
-            original.call(instance, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
+            original.call(context, texture, x, y, u, v, width, height, textureWidth, textureHeight);
         }
     }
 
@@ -104,13 +106,12 @@ public class AdvancementTabMixin {
             )
     )
     public void drawBlackBackgroundInSearch(DrawContext context, int x, int y, CallbackInfo ci) {
-        AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
-        if (screenImpl.advancementssearch$isSearchActive()) {
+        if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
             context.fill(
                     0,
                     0,
-                    screenImpl.advancementssearch$getWindowWidth(false),
-                    screenImpl.advancementssearch$getWindowHeight(false),
+                    screenImpl.advancementssearch$getTreeWidth(),
+                    screenImpl.advancementssearch$getTreeHeight(),
                     Colors.BLACK
             );
         }

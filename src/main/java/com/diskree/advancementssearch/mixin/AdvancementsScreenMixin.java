@@ -37,6 +37,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.*;
 
@@ -99,10 +100,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private AdvancementWidget focusedAdvancementWidget;
 
     @Unique
-    private int windowWidth;
+    private int treeWidth;
 
     @Unique
-    private int windowHeight;
+    private int treeHeight;
 
     @Unique
     private PlacedAdvancement targetAdvancement;
@@ -128,13 +129,13 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public int advancementssearch$getWindowWidth(boolean withBorder) {
-        return withBorder ? windowWidth : windowWidth - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE;
+    public int advancementssearch$getTreeWidth() {
+        return treeWidth;
     }
 
     @Override
-    public int advancementssearch$getWindowHeight(boolean withBorder) {
-        return withBorder ? windowHeight : windowHeight - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
+    public int advancementssearch$getTreeHeight() {
+        return treeHeight;
     }
 
     @Override
@@ -211,8 +212,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         }
         ArrayList<PlacedAdvancement> advancements = new ArrayList<>();
         AdvancementManager advancementManager = advancementHandler.getManager();
-        Map<AdvancementEntry, AdvancementProgress> progresses =
-                client.player.networkHandler.getAdvancementHandler().advancementProgresses;
+        Map<AdvancementEntry, AdvancementProgress> progresses = advancementHandler.advancementProgresses;
         for (AdvancementEntry advancementEntry : new ArrayList<>(progresses.keySet())) {
             if (advancementEntry == null) {
                 continue;
@@ -272,15 +272,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 AdvancementFrame.GOAL,
                 AdvancementFrame.CHALLENGE
         );
-        searchResults.sort((advancement1, advancement2) -> {
-            AdvancementDisplay display1 = advancement1.getAdvancement().display().orElse(null);
-            AdvancementDisplay display2 = advancement2.getAdvancement().display().orElse(null);
-            if (display1 == null || display2 == null) {
+        searchResults.sort((advancement, nextAdvancement) -> {
+            AdvancementDisplay display = advancement.getAdvancement().display().orElse(null);
+            AdvancementDisplay nextDisplay = nextAdvancement.getAdvancement().display().orElse(null);
+            if (display == null || nextDisplay == null) {
                 return 0;
             }
-            int index1 = frameOrder.indexOf(display1.getFrame());
-            int index2 = frameOrder.indexOf(display2.getFrame());
-            return Integer.compare(index1, index2);
+            int frameIndex = frameOrder.indexOf(display.getFrame());
+            int nextFrameIndex = frameOrder.indexOf(nextDisplay.getFrame());
+            return Integer.compare(frameIndex, nextFrameIndex);
         });
         if (searchResults.isEmpty()) {
             resetSearchTab();
@@ -299,8 +299,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
         int rowIndex = 0;
         int columnIndex = 0;
-        Map<AdvancementEntry, AdvancementProgress> progresses =
-                client.player.networkHandler.getAdvancementHandler().advancementProgresses;
+        Map<AdvancementEntry, AdvancementProgress> progresses = advancementHandler.advancementProgresses;
         PlacedAdvancement rootAdvancement = new PlacedAdvancement(searchRootAdvancement.getAdvancementEntry(), null);
         PlacedAdvancement parentPlacedAdvancement = rootAdvancement;
         for (PlacedAdvancement searchResult : searchResults) {
@@ -402,10 +401,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (targetAdvancement != null && selectedTab != null) {
             for (AdvancementWidget widget : selectedTab.widgets.values()) {
                 if (widget != null && widget.advancement == targetAdvancement) {
-                    int centerX = (WIDGET_SIZE - advancementssearch$getWindowWidth(false)) / 2;
-                    int centerY = (WIDGET_SIZE - advancementssearch$getWindowHeight(false)) / 2;
+                    int centerX = (WIDGET_SIZE - advancementssearch$getTreeWidth()) / 2;
+                    int centerY = (WIDGET_SIZE - advancementssearch$getTreeHeight()) / 2;
                     selectedTab.move(
-                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + (double) centerX),
+                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + centerX),
                             -(selectedTab.originY + widget.getY() + centerY)
                     );
                     targetAdvancement = null;
@@ -424,10 +423,14 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     target = "Lnet/minecraft/client/network/ClientAdvancementManager;selectTab(Lnet/minecraft/advancement/AdvancementEntry;Z)V"
             )
     )
-    private void mouseClickedRedirect(@NotNull ClientAdvancementManager instance, AdvancementEntry tab, boolean local) {
+    private void mouseClickedRedirect(
+            @NotNull ClientAdvancementManager advancementHandler,
+            AdvancementEntry tab,
+            boolean local
+    ) {
         isSearchActive = false;
         advancementssearch$stopHighlight();
-        instance.selectTab(tab, true);
+        advancementHandler.selectTab(tab, true);
     }
 
     @Redirect(
@@ -438,7 +441,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     opcode = Opcodes.GETFIELD
             )
     )
-    private @Nullable AdvancementTab drawAdvancementTreeInject(AdvancementsScreen instance) {
+    private @Nullable AdvancementTab drawAdvancementTreeInject(AdvancementsScreen screen) {
         return !isSearchActive ? selectedTab : searchTab.widgets.size() > 1 ? searchTab : null;
     }
 
@@ -521,7 +524,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     opcode = Opcodes.GETFIELD
             )
     )
-    private AdvancementTab mouseScrolledRedirect(AdvancementsScreen instance) {
+    private AdvancementTab mouseScrolledRedirect(AdvancementsScreen screen) {
         return isSearchActive ? searchTab : selectedTab;
     }
 
@@ -533,7 +536,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                     opcode = Opcodes.GETFIELD
             )
     )
-    private AdvancementTab mouseDraggedRedirect(AdvancementsScreen instance) {
+    private AdvancementTab mouseDraggedRedirect(AdvancementsScreen screen) {
         return isSearchActive ? searchTab : selectedTab;
     }
 
@@ -592,11 +595,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int mouseY,
             float delta,
             CallbackInfo ci,
-            int centerX,
-            int centerY
+            int windowX,
+            int windowY
     ) {
-        windowWidth = Math.abs(centerX * 2 - width);
-        windowHeight = Math.abs(centerY * 2 - height);
+        treeWidth = Math.abs(windowX * 2 - width) - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE;
+        treeHeight = Math.abs(windowY * 2 - height) - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
     }
 
     @Inject(
@@ -608,11 +611,19 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
-    public void renderInject(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j) {
+    public void renderInject(
+            DrawContext context,
+            int mouseX,
+            int mouseY,
+            float delta,
+            CallbackInfo ci,
+            int windowX,
+            int windowY
+    ) {
         if (searchField != null) {
             int frameOffset = 1;
             int frameContainerWidth = frameOffset + WIDGET_SIZE + frameOffset;
-            int treeWidth = advancementssearch$getWindowWidth(false);
+            int treeWidth = advancementssearch$getTreeWidth();
             int columnsCount = treeWidth / frameContainerWidth;
             int rowWidth = frameContainerWidth * columnsCount;
             int horizontalOffset = treeWidth - rowWidth - TREE_X_OFFSET;
@@ -626,8 +637,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             }
 
             int symmetryFixX = 1;
-            int fieldX = i + windowWidth - WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
-            int fieldY = j + 4;
+            int fieldX = windowX + this.treeWidth + WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
+            int fieldY = windowY + 4;
 
             context.drawTexture(
                     CREATIVE_INVENTORY_TEXTURE,
@@ -682,12 +693,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (focusedAdvancementWidget != null &&
                 focusedAdvancementWidget.tab != null &&
                 focusedAdvancementWidget.tab == searchTab &&
-                button == 1
+                button == MouseEvent.BUTTON1
         ) {
+            Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
             for (PlacedAdvancement placedAdvancement : getAdvancements()) {
-                if (placedAdvancement.getAdvancementEntry().id().equals(
-                        focusedAdvancementWidget.advancement.getAdvancementEntry().id()
-                )) {
+                if (placedAdvancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
                     openAdvancement(placedAdvancement);
                     cir.setReturnValue(true);
                     break;

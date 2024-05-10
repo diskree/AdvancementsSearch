@@ -9,9 +9,9 @@ public interface AdvancementsScreenImpl {
 
     boolean advancementssearch$isSearchActive();
 
-    int advancementssearch$getWindowWidth(boolean withBorder);
+    int advancementssearch$getTreeWidth();
 
-    int advancementssearch$getWindowHeight(boolean withBorder);
+    int advancementssearch$getTreeHeight();
 
     Identifier advancementssearch$getHighlightedAdvancementId();
 
