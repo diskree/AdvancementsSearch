@@ -49,6 +49,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             new Identifier("textures/gui/container/creative_inventory/tab_item_search.png");
 
     @Unique
+    private static final String SEARCH_MASK_TITLE_ONLY = "title" + ":";
+
+    @Unique
+    private static final String SEARCH_MASK_DESCRIPTION_ONLY = "description" + ":";
+
+    @Unique
+    private static final String SEARCH_MASK_ICON_NAME_ONLY = "icon" + ":";
+
+    @Unique
     private static final Point SEARCH_FIELD_UV = new Point(80, 4);
 
     @Unique
@@ -165,10 +174,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Override
     public void advancementssearch$search(String query) {
-        if (searchField != null) {
-            searchField.setText(query);
-            search();
-        }
+        searchField.setText(query);
+        search(query);
     }
 
     @Override
@@ -217,9 +224,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private @NotNull ArrayList<PlacedAdvancement> getAdvancements() {
-        if (client == null || client.player == null) {
-            return new ArrayList<>();
-        }
         ArrayList<PlacedAdvancement> advancements = new ArrayList<>();
         AdvancementManager advancementManager = advancementHandler.getManager();
         Map<AdvancementEntry, AdvancementProgress> progresses = advancementHandler.advancementProgresses;
@@ -256,11 +260,34 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private void search() {
-        if (client == null || client.player == null || searchField == null) {
+        if (searchField == null) {
             return;
         }
-        checkSearchActive();
-        String query = searchField.getText().toLowerCase(Locale.ROOT);
+        search(searchField.getText());
+    }
+
+    @Unique
+    private void search(String query) {
+        isSearchActive = !query.isEmpty();
+
+        boolean checkTitleOnly = false;
+        boolean checkDescriptionOnly = false;
+        boolean checkIconNameOnly = false;
+
+        query = query.toLowerCase(Locale.ROOT).trim();
+        if (query.startsWith(SEARCH_MASK_TITLE_ONLY)) {
+            checkTitleOnly = true;
+            query = query.substring(SEARCH_MASK_TITLE_ONLY.length());
+        } else if (query.startsWith(SEARCH_MASK_DESCRIPTION_ONLY)) {
+            checkDescriptionOnly = true;
+            query = query.substring(SEARCH_MASK_DESCRIPTION_ONLY.length());
+        } else if (query.startsWith(SEARCH_MASK_ICON_NAME_ONLY)) {
+            checkIconNameOnly = true;
+            query = query.substring(SEARCH_MASK_ICON_NAME_ONLY.length());
+        }
+        query = query.trim();
+
+        boolean checkEverywhere = !checkTitleOnly && !checkDescriptionOnly && !checkIconNameOnly;
 
         searchResults.clear();
         for (PlacedAdvancement placedAdvancement : getAdvancements()) {
@@ -270,8 +297,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             }
             String title = display.getTitle().getString().toLowerCase(Locale.ROOT);
             String description = display.getDescription().getString().toLowerCase(Locale.ROOT);
+            String iconName = display.getIcon().getItem().getName().getString().toLowerCase(Locale.ROOT);
 
-            if (title.contains(query) || description.contains(query)) {
+            if ((checkEverywhere || checkTitleOnly) && title.contains(query) ||
+                    (checkEverywhere || checkDescriptionOnly) && description.contains(query) ||
+                    (checkEverywhere || checkIconNameOnly) && iconName.contains(query)
+            ) {
                 searchResults.add(placedAdvancement);
             }
         }
@@ -301,7 +332,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private void updateSearchResults() {
-        if (client == null || client.player == null || searchTab == null) {
+        if (searchTab == null) {
             return;
         }
         resetSearchTab();
@@ -362,6 +393,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private void resetSearchTab() {
+        if (searchTab == null) {
+            return;
+        }
         searchTab.minPanX = Integer.MAX_VALUE;
         searchTab.minPanY = Integer.MAX_VALUE;
         searchTab.maxPanX = Integer.MIN_VALUE;
@@ -374,16 +408,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             widget.children.clear();
         }
         searchTab.widgets.clear();
-    }
-
-    @Unique
-    private void checkSearchActive() {
-        String query = searchField.getText().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) {
-            isSearchActive = false;
-            return;
-        }
-        isSearchActive = true;
     }
 
     @Unique
@@ -408,20 +432,21 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             at = @At("TAIL")
     )
     private void openTargetAdvancement(DrawContext context, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
-        if (targetAdvancement != null && selectedTab != null) {
-            for (AdvancementWidget widget : selectedTab.widgets.values()) {
-                if (widget != null && widget.advancement == targetAdvancement) {
-                    int centerX = (WIDGET_SIZE - advancementssearch$getTreeWidth()) / 2;
-                    int centerY = (WIDGET_SIZE - advancementssearch$getTreeHeight()) / 2;
-                    selectedTab.move(
-                            -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + centerX),
-                            -(selectedTab.originY + widget.getY() + centerY)
-                    );
-                    targetAdvancement = null;
-                    highlightedAdvancementId = widget.advancement.getAdvancementEntry().id();
-                    widgetHighlightCounter = WIDGET_HIGHLIGHT_COUNT * 2 * WIDGET_HIGHLIGHT_TICKS;
-                    break;
-                }
+        if (targetAdvancement == null || selectedTab == null) {
+            return;
+        }
+        for (AdvancementWidget widget : selectedTab.widgets.values()) {
+            if (widget != null && widget.advancement == targetAdvancement) {
+                int centerX = (WIDGET_SIZE - advancementssearch$getTreeWidth()) / 2;
+                int centerY = (WIDGET_SIZE - advancementssearch$getTreeHeight()) / 2;
+                selectedTab.move(
+                        -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + centerX),
+                        -(selectedTab.originY + widget.getY() + centerY)
+                );
+                targetAdvancement = null;
+                highlightedAdvancementId = widget.advancement.getAdvancementEntry().id();
+                widgetHighlightCounter = WIDGET_HIGHLIGHT_COUNT * 2 * WIDGET_HIGHLIGHT_TICKS;
+                break;
             }
         }
     }
@@ -701,7 +726,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     public void mouseClickedInject(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (searchField != null && searchField.mouseClicked(mouseX, mouseY, button)) {
-            checkSearchActive();
+            isSearchActive = !searchField.getText().isEmpty();
             cir.setReturnValue(true);
         }
         if (focusedAdvancementWidget != null &&

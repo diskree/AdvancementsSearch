@@ -183,7 +183,8 @@ public abstract class AdvancementWidgetMixin {
             if (AdvancementsSearch.isSearch(tab.getRoot()) ||
                     highlightedAdvancementId == null ||
                     highlightedAdvancementId != advancement.getAdvancementEntry().id() ||
-                    !screenImpl.advancementssearch$isHighlightAtInvisibleState()) {
+                    !screenImpl.advancementssearch$isHighlightAtInvisibleState()
+            ) {
                 original.call(context, texture, x, y, width, height);
             }
         }
@@ -206,7 +207,8 @@ public abstract class AdvancementWidgetMixin {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                     highlightedAdvancementId != null &&
-                    highlightedAdvancementId == advancement.getAdvancementEntry().id()) {
+                    highlightedAdvancementId == advancement.getAdvancementEntry().id()
+            ) {
                 screenImpl.advancementssearch$stopHighlight();
             }
         }
