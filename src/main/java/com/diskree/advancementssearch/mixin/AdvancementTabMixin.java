@@ -26,22 +26,22 @@ public class AdvancementTabMixin {
     private AdvancementsScreen screen;
 
     @Inject(
-            method = "drawWidgetTooltip",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(Lnet/minecraft/client/gui/DrawContext;IIFII)V",
-                    shift = At.Shift.AFTER
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
+        method = "drawWidgetTooltip",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(Lnet/minecraft/client/gui/DrawContext;IIFII)V",
+            shift = At.Shift.AFTER
+        ),
+        locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void saveFocusedAdvancementWidget(
-            DrawContext context,
-            int mouseX,
-            int mouseY,
-            int x,
-            int y,
-            CallbackInfo ci,
-            @Local(ordinal = 0) AdvancementWidget advancementWidget
+        DrawContext context,
+        int mouseX,
+        int mouseY,
+        int x,
+        int y,
+        CallbackInfo ci,
+        @Local(ordinal = 0) AdvancementWidget advancementWidget
     ) {
         if (screen instanceof AdvancementsScreenImpl screenImpl) {
             screenImpl.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
@@ -49,22 +49,22 @@ public class AdvancementTabMixin {
     }
 
     @Inject(
-            method = "drawWidgetTooltip",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V",
-                    shift = At.Shift.AFTER
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
+        method = "drawWidgetTooltip",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V",
+            shift = At.Shift.AFTER
+        ),
+        locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void resetFocusedAdvancementWidget(
-            DrawContext context,
-            int mouseX,
-            int mouseY,
-            int x,
-            int y,
-            CallbackInfo ci,
-            @Local(ordinal = 0) boolean shouldShowTooltip
+        DrawContext context,
+        int mouseX,
+        int mouseY,
+        int x,
+        int y,
+        CallbackInfo ci,
+        @Local(ordinal = 0) boolean shouldShowTooltip
     ) {
         if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl screenImpl) {
             screenImpl.advancementssearch$setFocusedAdvancementWidget(null);
@@ -72,24 +72,24 @@ public class AdvancementTabMixin {
     }
 
     @WrapOperation(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIFFIIII)V"
-            )
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIFFIIII)V"
+        )
     )
     private void cancelBackgroundRenderInSearch(
-            DrawContext context,
-            Identifier texture,
-            int x,
-            int y,
-            float u,
-            float v,
-            int width,
-            int height,
-            int textureWidth,
-            int textureHeight,
-            Operation<Void> original
+        DrawContext context,
+        Identifier texture,
+        int x,
+        int y,
+        float u,
+        float v,
+        int width,
+        int height,
+        int textureWidth,
+        int textureHeight,
+        Operation<Void> original
     ) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
             original.call(context, texture, x, y, u, v, width, height, textureWidth, textureHeight);
@@ -97,22 +97,22 @@ public class AdvancementTabMixin {
     }
 
     @Inject(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/gui/DrawContext;IIZ)V",
-                    shift = At.Shift.BEFORE,
-                    ordinal = 0
-            )
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/gui/DrawContext;IIZ)V",
+            shift = At.Shift.BEFORE,
+            ordinal = 0
+        )
     )
     public void drawBlackBackgroundInSearch(DrawContext context, int x, int y, CallbackInfo ci) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
             context.fill(
-                    0,
-                    0,
-                    screenImpl.advancementssearch$getTreeWidth(),
-                    screenImpl.advancementssearch$getTreeHeight(),
-                    Colors.BLACK
+                0,
+                0,
+                screenImpl.advancementssearch$getTreeWidth(),
+                screenImpl.advancementssearch$getTreeHeight(),
+                Colors.BLACK
             );
         }
     }

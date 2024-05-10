@@ -12,18 +12,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ChatScreenMixin {
 
     @Inject(
-            method = "sendMessage",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendChatCommand(Ljava/lang/String;)V",
-                    shift = At.Shift.AFTER
-            ),
-            cancellable = true
+        method = "sendMessage",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendChatCommand(Ljava/lang/String;)V",
+            shift = At.Shift.AFTER
+        ),
+        cancellable = true
     )
     private void cancelCloseScreen(
-            @NotNull String chatText,
-            boolean addToHistory,
-            CallbackInfoReturnable<Boolean> cir
+        @NotNull String chatText,
+        boolean addToHistory,
+        CallbackInfoReturnable<Boolean> cir
     ) {
         if (AdvancementsSearch.isModCommand(chatText)) {
             cir.setReturnValue(false);

@@ -19,7 +19,11 @@ public interface AdvancementsScreenImpl {
 
     void advancementssearch$stopHighlight();
 
-    void advancementssearch$search(String query);
+    void advancementssearch$search(
+        String query,
+        SearchByType searchByType,
+        boolean shouldAutoOpenWhenSingleSearchResult
+    );
 
     void advancementssearch$openAdvancement(Identifier identifier);
 }
