@@ -23,6 +23,10 @@ public class AdvancementsSearch implements ClientModInitializer {
         return root != null && ADVANCEMENTS_SEARCH_ID.equals(root.getAdvancementEntry().id());
     }
 
+    public static boolean isModCommand(@NotNull String command) {
+        return command.startsWith("/" + BuildConfig.MOD_ID + " ");
+    }
+
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
