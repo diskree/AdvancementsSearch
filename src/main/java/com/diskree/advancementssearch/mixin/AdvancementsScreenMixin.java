@@ -277,6 +277,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private void searchInternal(String query, SearchByType searchByType) {
         query = query.toLowerCase(Locale.ROOT);
         searchResults.clear();
+        if (query.trim().isEmpty()) {
+            return;
+        }
         boolean checkEverywhere = searchByType == SearchByType.EVERYWHERE;
         for (PlacedAdvancement placedAdvancement : getAdvancements()) {
             AdvancementDisplay display = placedAdvancement.getAdvancement().display().orElse(null);

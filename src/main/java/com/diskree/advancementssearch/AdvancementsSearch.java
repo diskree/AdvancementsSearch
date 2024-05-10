@@ -42,7 +42,7 @@ public class AdvancementsSearch implements ClientModInitializer {
             dispatcher.register(literal(BuildConfig.MOD_ID)
                 .then(literal("search")
                     .then(argument("query", StringArgumentType.string())
-                        .then(argument("by", StringArgumentType.word()).suggests(new SearchByTypeProvider())
+                        .then(argument("by", StringArgumentType.word()).suggests(new SearchByTypeSuggestionProvider())
                             .then(argument("autoOpenWhenSingleSearchResult", BoolArgumentType.bool())
                                 .executes(context -> search(
                                     context.getSource().getClient(),
@@ -66,7 +66,8 @@ public class AdvancementsSearch implements ClientModInitializer {
         );
     }
 
-    public static class SearchByTypeProvider implements SuggestionProvider<FabricClientCommandSource> {
+    public static class SearchByTypeSuggestionProvider implements SuggestionProvider<FabricClientCommandSource> {
+
         @Override
         public CompletableFuture<Suggestions> getSuggestions(
             CommandContext<FabricClientCommandSource> context,

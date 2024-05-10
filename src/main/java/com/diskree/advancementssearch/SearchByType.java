@@ -22,15 +22,23 @@ public enum SearchByType {
 
     public static SearchByType findByMask(String query) {
         for (SearchByType searchByType : SearchByType.values()) {
-            if (searchByType != EVERYWHERE && query.split(QUERY_SEPARATOR)[0].equalsIgnoreCase(searchByType.name())) {
-                return searchByType;
+            if (searchByType != EVERYWHERE) {
+                String prefix = searchByType.name() + QUERY_SEPARATOR;
+                if (query.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
+                    return searchByType;
+                }
             }
         }
         return EVERYWHERE;
     }
 
     public static String getQueryWithoutMask(String query) {
-        return findByMask(query) == EVERYWHERE ? query : query.split(QUERY_SEPARATOR)[1];
+        SearchByType searchByType = findByMask(query);
+        if (searchByType == EVERYWHERE) {
+            return query;
+        }
+        String prefix = searchByType.name() + QUERY_SEPARATOR;
+        return query.substring(prefix.length());
     }
 
     public static String addMaskToQuery(String query, SearchByType searchByType) {
