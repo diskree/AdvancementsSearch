@@ -103,7 +103,7 @@ public abstract class AdvancementWidgetMixin {
             at = @At(value = "HEAD"),
             cancellable = true
     )
-    public void renderLinesInject(
+    public void cancelLinesRenderInSearch(
             DrawContext context,
             int x,
             int y,

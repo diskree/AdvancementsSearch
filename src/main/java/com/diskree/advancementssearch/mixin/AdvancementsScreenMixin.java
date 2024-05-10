@@ -540,7 +540,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         return isSearchActive ? searchTab : selectedTab;
     }
 
-    @Inject(method = "init", at = @At(value = "TAIL"))
+    @Inject(
+            method = "init",
+            at = @At(value = "TAIL")
+    )
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(textRenderer, 0, 0, ScreenTexts.EMPTY);
         searchField.setDrawsBackground(false);
