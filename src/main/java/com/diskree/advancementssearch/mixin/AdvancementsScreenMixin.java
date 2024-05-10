@@ -174,8 +174,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Override
     public void advancementssearch$search(String query) {
+        searchInternal(query);
+        if (searchResults.size() == 1) {
+            openAdvancement(searchResults.get(0));
+            searchResults.clear();
+            return;
+        }
         searchField.setText(query);
-        search(query);
+        isSearchActive = !query.isEmpty();
+        showSearchResults();
     }
 
     @Override
@@ -205,7 +212,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             String oldText = searchField.getText();
             if (searchField.charTyped(chr, modifiers)) {
                 if (!Objects.equals(oldText, searchField.getText())) {
-                    search();
+                    searchByUser();
                 }
                 return true;
             }
@@ -259,22 +266,23 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private void search() {
+    private void searchByUser() {
         if (searchField == null) {
             return;
         }
-        search(searchField.getText());
+        String query = searchField.getText();
+        isSearchActive = !query.isEmpty();
+        searchInternal(query);
+        showSearchResults();
     }
 
     @Unique
-    private void search(String query) {
-        isSearchActive = !query.isEmpty();
-
+    private void searchInternal(String query) {
         boolean checkTitleOnly = false;
         boolean checkDescriptionOnly = false;
         boolean checkIconNameOnly = false;
 
-        query = query.toLowerCase(Locale.ROOT).trim();
+        query = query.toLowerCase(Locale.ROOT);
         if (query.startsWith(SEARCH_MASK_TITLE_ONLY)) {
             checkTitleOnly = true;
             query = query.substring(SEARCH_MASK_TITLE_ONLY.length());
@@ -285,7 +293,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             checkIconNameOnly = true;
             query = query.substring(SEARCH_MASK_ICON_NAME_ONLY.length());
         }
-        query = query.trim();
 
         boolean checkEverywhere = !checkTitleOnly && !checkDescriptionOnly && !checkIconNameOnly;
 
@@ -323,19 +330,17 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int nextFrameIndex = frameOrder.indexOf(nextDisplay.getFrame());
             return Integer.compare(frameIndex, nextFrameIndex);
         });
-        if (searchResults.isEmpty()) {
-            resetSearchTab();
-            return;
-        }
-        updateSearchResults();
     }
 
     @Unique
-    private void updateSearchResults() {
+    private void showSearchResults() {
         if (searchTab == null) {
             return;
         }
         resetSearchTab();
+        if (searchResults.isEmpty()) {
+            return;
+        }
         searchTab.addWidget(searchTab.rootWidget, searchRootAdvancement.getAdvancementEntry());
 
         int rowIndex = 0;
@@ -675,7 +680,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 searchResultsColumnsCount = columnsCount;
                 searchResultsOriginX = originX;
                 if (isSearchActive) {
-                    updateSearchResults();
+                    showSearchResults();
                 }
             }
 
@@ -709,7 +714,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             String oldText = searchField.getText();
             if (searchField.keyPressed(keyCode, scanCode, modifiers)) {
                 if (!Objects.equals(oldText, searchField.getText())) {
-                    search();
+                    searchByUser();
                 }
                 cir.setReturnValue(true);
             }
