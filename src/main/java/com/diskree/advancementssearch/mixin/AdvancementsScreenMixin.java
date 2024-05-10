@@ -694,7 +694,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             cir.setReturnValue(true);
         }
         if (focusedAdvancementWidget != null &&
-                focusedAdvancementWidget.tab != null &&
                 focusedAdvancementWidget.tab == searchTab &&
                 button == MouseEvent.BUTTON1
         ) {

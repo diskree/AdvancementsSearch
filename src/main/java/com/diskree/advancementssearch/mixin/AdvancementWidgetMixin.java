@@ -87,7 +87,7 @@ public abstract class AdvancementWidgetMixin {
             searchResultHint = Language.getInstance().reorder(wrapDescription(
                     Texts.setStyleIfAbsent(
                             Text.translatable("advancementssearch.search_result_hint").copy(),
-                            Style.EMPTY.withColor(Formatting.GRAY)
+                            Style.EMPTY.withColor(Formatting.DARK_GRAY)
                     ),
                     maxWidth
             ));
@@ -178,7 +178,7 @@ public abstract class AdvancementWidgetMixin {
             int height,
             Operation<Void> original
     ) {
-        if (tab != null && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (AdvancementsSearch.isSearch(tab.getRoot()) ||
                     highlightedAdvancementId == null ||
@@ -202,7 +202,7 @@ public abstract class AdvancementWidgetMixin {
             int y,
             CallbackInfo ci
     ) {
-        if (tab != null && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                     highlightedAdvancementId != null &&
