@@ -599,7 +599,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 ItemStack.EMPTY,
                 Text.empty(),
                 Text.empty(),
-                Optional.empty(),
+                null,
                 AdvancementFrame.TASK,
                 false,
                 false,
