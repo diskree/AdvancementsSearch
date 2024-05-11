@@ -8,8 +8,6 @@
   "client": [
     "AdvancementsScreenMixin",
     "AdvancementTabMixin",
-    "AdvancementWidgetMixin",
-    "BookScreenMixin",
-    "ChatScreenMixin"
+    "AdvancementWidgetMixin"
   ]
 }

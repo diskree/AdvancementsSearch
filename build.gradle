@@ -20,7 +20,6 @@ dependencies {
     minecraft "com.mojang:minecraft:${minMinecraftVersion}"
     mappings "net.fabricmc:yarn:${minMinecraftVersion}+build.${mappingsBuild}:v2"
     modImplementation "net.fabricmc:fabric-loader:${minLoaderVersion}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${apiVersion}+1.16"
 }
 
 processResources {
