@@ -376,7 +376,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             );
             searchResultAdvancementDisplay.setPos(columnIndex, rowIndex);
 
-            Advancement.Builder searchResultAdvancementBuilder = Advancement.Builder.create()
+            Advancement.Task searchResultAdvancementBuilder = Advancement.Task.create()
                 .parent(parentAdvancement)
                 .display(searchResultAdvancementDisplay)
                 .rewards(searchResult.getRewards())
@@ -602,7 +602,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 false,
                 true
             );
-            searchRootAdvancement = Advancement.Builder.create()
+            searchRootAdvancement = Advancement.Task.create()
                 .display(searchRootAdvancementDisplay)
                 .build(AdvancementsSearch.ADVANCEMENTS_SEARCH_ID);
             AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;
