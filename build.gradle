@@ -5,7 +5,7 @@ plugins {
 def modId = project.modName.toLowerCase()
 def repoUrl = "https://github.com/${author}/${modName}"
 
-version = "mc${minecraftVersion}+${modVersion}"
+version = "mc${minMinecraftVersion}+${modVersion}"
 group = "com." + project.author
 
 base {
@@ -17,22 +17,23 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${minecraftVersion}"
-    mappings "net.fabricmc:yarn:${minecraftVersion}+build.${mappingsBuild}:v2"
+    minecraft "com.mojang:minecraft:${minMinecraftVersion}"
+    mappings "net.fabricmc:yarn:${minMinecraftVersion}+build.${mappingsBuild}:v2"
     modImplementation "net.fabricmc:fabric-loader:${minLoaderVersion}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${apiVersion}+${minecraftVersion}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${apiVersion}+${minMinecraftVersion}"
 }
 
 processResources {
     def propertyMap = [
-            'modId'           : modId,
-            'modVersion'      : modVersion,
-            'modName'         : modName,
-            'author'          : author,
-            'repoUrl'         : repoUrl,
-            'minJavaVersion'  : minJavaVersion,
-            'minecraftVersion': minecraftVersion,
-            'minLoaderVersion': minLoaderVersion
+            'modId'              : modId,
+            'modVersion'         : modVersion,
+            'modName'            : modName,
+            'author'             : author,
+            'repoUrl'            : repoUrl,
+            'minJavaVersion'     : minJavaVersion,
+            'minMinecraftVersion': minMinecraftVersion,
+            'maxMinecraftVersion': maxMinecraftVersion,
+            'minLoaderVersion'   : minLoaderVersion
     ]
     inputs.properties(propertyMap)
     filesMatching("fabric.mod.json") {
