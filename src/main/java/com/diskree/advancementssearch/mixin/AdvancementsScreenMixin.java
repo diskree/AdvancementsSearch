@@ -526,9 +526,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         }
     }
 
-
     @ModifyArgs(
-        method = "drawWindow",
+        method = "drawWidgets",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawBackground(Lnet/minecraft/client/util/math/MatrixStack;IIZ)V"
@@ -647,8 +646,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWindow(Lnet/minecraft/client/util/math/MatrixStack;II)V",
-            shift = At.Shift.AFTER
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWidgetTooltip(Lnet/minecraft/client/util/math/MatrixStack;IIII)V",
+            shift = At.Shift.BEFORE
         )
     )
     public void renderInject(
