@@ -6,7 +6,6 @@ import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.advancement.AdvancementFrame;
@@ -379,8 +378,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             Advancement.Task searchResultAdvancementBuilder = Advancement.Task.create()
                 .parent(parentAdvancement)
                 .display(searchResultAdvancementDisplay)
-                .rewards(searchResult.getRewards())
-                .method_34884(searchResult.getRequirements());
+                .rewards(searchResult.getRewards());
+            searchResultAdvancementBuilder.requirements = searchResult.getRequirements();
             searchResult.getCriteria().forEach(searchResultAdvancementBuilder::criterion);
 
             Advancement searchResultAdvancement = searchResultAdvancementBuilder.build(searchResult.getId());
@@ -587,7 +586,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         );
         searchField.setDrawsBackground(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
-        addSelectableChild(searchField);
+        children.add(searchField);
         setInitialFocus(searchField);
 
         if (searchTab == null) {
@@ -676,7 +675,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int fieldX = windowX + treeWidth + WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = windowY + 4;
 
-            RenderSystem.setShaderTexture(0, CREATIVE_INVENTORY_TEXTURE);
+            if (client != null) {
+                client.getTextureManager().bindTexture(CREATIVE_INVENTORY_TEXTURE);
+            }
             drawTexture(
                 matrices,
                 fieldX,

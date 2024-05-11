@@ -52,7 +52,7 @@ public class AdvancementTabMixin {
         method = "drawWidgetTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V",
+            target = "Lcom/mojang/blaze3d/systems/RenderSystem;popMatrix()V",
             shift = At.Shift.AFTER
         ),
         locals = LocalCapture.CAPTURE_FAILHARD

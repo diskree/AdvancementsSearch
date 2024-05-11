@@ -17,3 +17,5 @@ accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget p
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget children Ljava/util/List;
 
 accessible field net/minecraft/client/network/ClientAdvancementManager advancementProgresses Ljava/util/Map;
+
+accessible field net/minecraft/advancement/Advancement$Task requirements [[Ljava/lang/String;

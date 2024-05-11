@@ -4,6 +4,8 @@ import com.diskree.advancementssearch.AdvancementsSearch;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.BookScreen;
 import net.minecraft.text.ClickEvent;
 import org.jetbrains.annotations.NotNull;
@@ -17,16 +19,17 @@ public class BookScreenMixin {
         method = "handleTextClick",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/ingame/BookScreen;closeScreen()V"
+            target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V"
         )
     )
     private void cancelCloseScreen(
-        BookScreen screen,
+        MinecraftClient client,
+        Screen screen,
         Operation<Void> original,
         @Local @NotNull ClickEvent clickEvent
     ) {
         if (!AdvancementsSearch.isModCommand(clickEvent.getValue())) {
-            original.call(screen);
+            original.call(client, screen);
         }
     }
 }
