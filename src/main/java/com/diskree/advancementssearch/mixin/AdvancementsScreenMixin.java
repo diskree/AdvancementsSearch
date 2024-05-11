@@ -4,15 +4,12 @@ import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
@@ -486,43 +483,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private @Nullable AdvancementTab drawAdvancementTreeInject(AdvancementsScreen screen) {
         return !isSearchActive ? selectedTab : searchTab.widgets.size() > 1 ? searchTab : null;
     }
-
-    @ModifyArgs(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredTextWithShadow(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 0
-        )
-    )
-    private void drawAdvancementTreeModifyText(Args args) {
-        if (isSearchActive) {
-            args.set(2, Text.translatable("advancementssearch.advancements_not_found"));
-        }
-    }
-
-    @WrapOperation(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredTextWithShadow(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 1
-        )
-    )
-    private void cancelSadLabelRenderInSearch(
-        MatrixStack matrices,
-        TextRenderer textRenderer,
-        Text text,
-        int centerX,
-        int y,
-        int color,
-        Operation<Void> original
-    ) {
-        if (!isSearchActive) {
-            original.call(matrices, textRenderer, text, centerX, y, color);
-        }
-    }
-
 
     @ModifyArgs(
         method = "drawWindow",
