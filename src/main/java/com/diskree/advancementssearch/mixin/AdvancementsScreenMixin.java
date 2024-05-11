@@ -689,7 +689,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             );
 
             searchField.setX(fieldX + SEARCH_FIELD_TEXT_LEFT_OFFSET);
-            searchField.setY(fieldY + SEARCH_FIELD_TEXT_LEFT_OFFSET);
+            searchField.y = fieldY + SEARCH_FIELD_TEXT_LEFT_OFFSET;
             searchField.render(matrices, mouseX, mouseY, delta);
         }
     }

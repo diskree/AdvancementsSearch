@@ -15,7 +15,7 @@ public class ChatScreenMixin {
         method = "sendMessage",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendChatCommand(Ljava/lang/String;)V",
+            target = "Lnet/minecraft/client/network/ClientPlayerEntity;sendCommand(Ljava/lang/String;Lnet/minecraft/text/Text;)V",
             shift = At.Shift.AFTER
         ),
         cancellable = true
