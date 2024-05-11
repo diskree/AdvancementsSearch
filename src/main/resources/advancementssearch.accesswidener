@@ -17,3 +17,5 @@ accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget p
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget children Ljava/util/List;
 
 accessible field net/minecraft/client/network/ClientAdvancementManager advancementProgresses Ljava/util/Map;
+
+accessible method net/minecraft/client/gui/widget/ClickableWidget drawScrollableText (Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIII)V

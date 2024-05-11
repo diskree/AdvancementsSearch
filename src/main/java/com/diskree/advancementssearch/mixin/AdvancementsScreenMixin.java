@@ -21,6 +21,8 @@ import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -49,6 +51,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Unique
     private static final Identifier CREATIVE_INVENTORY_TEXTURE =
         new Identifier("textures/gui/container/creative_inventory/tab_item_search.png");
+
+    @Unique
+    private static final Text SEARCH_TITLE = Text.translatable("gui.recipebook.search_hint");
 
     @Unique
     private static final Point SEARCH_FIELD_UV = new Point(80, 4);
@@ -529,6 +534,48 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (isSearchActive) {
             args.set(3, false);
         }
+    }
+
+    @Redirect(
+        method = "drawWindow",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIZ)I"
+        )
+    )
+    private int modifyWindowTitleRender(
+        DrawContext context,
+        TextRenderer textRenderer,
+        Text text,
+        int x,
+        int y,
+        int color,
+        boolean shadow
+    ) {
+        if (isSearchActive) {
+            text = SEARCH_TITLE;
+        }
+        int rightEdgeX = x + treeWidth - SEARCH_FIELD_WIDTH - 3;
+        int textWidth = textRenderer.getWidth(text);
+        int availableWidth = rightEdgeX - x;
+
+        if (textWidth > availableWidth) {
+            int bottomY = y + textRenderer.fontHeight;
+
+            int excessWidth = textWidth - availableWidth;
+            double timeInSeconds = Util.getMeasuringTimeMs() / 1000.0;
+            double adjustmentFactor = Math.max((double) excessWidth * 0.5, 3);
+            double oscillation =
+                Math.sin(Math.PI / 2 * Math.cos(Math.PI * 2 * timeInSeconds / adjustmentFactor)) / 2 + 0.5;
+            double offset = MathHelper.lerp(oscillation, 0, excessWidth);
+
+            context.enableScissor(x, y, rightEdgeX, bottomY);
+            context.drawText(textRenderer, text, x - (int) offset, y, color, shadow);
+            context.disableScissor();
+        } else {
+            context.drawText(textRenderer, text, x, y, color, shadow);
+        }
+        return 0;
     }
 
     @Redirect(
