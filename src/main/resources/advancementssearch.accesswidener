@@ -9,10 +9,10 @@ accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab minP
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab maxPanX I
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab maxPanY I
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab initialized Z
-accessible method net/minecraft/client/gui/screen/advancement/AdvancementTab addWidget (Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;Lnet/minecraft/advancement/AdvancementEntry;)V
+accessible method net/minecraft/client/gui/screen/advancement/AdvancementTab addWidget (Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;Lnet/minecraft/advancement/Advancement;)V
 
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget tab Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget advancement Lnet/minecraft/advancement/PlacedAdvancement;
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget advancement Lnet/minecraft/advancement/Advancement;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget parent Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget children Ljava/util/List;
 

@@ -10,7 +10,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.advancement.PlacedAdvancement;
+import net.minecraft.advancement.Advancement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.command.argument.IdentifierArgumentType;
@@ -28,8 +28,8 @@ public class AdvancementsSearch implements ClientModInitializer {
     public static final Identifier ADVANCEMENTS_SEARCH_ID =
         new Identifier(BuildConfig.MOD_ID, BuildConfig.MOD_ID + "/root");
 
-    public static boolean isSearch(PlacedAdvancement root) {
-        return root != null && ADVANCEMENTS_SEARCH_ID.equals(root.getAdvancementEntry().id());
+    public static boolean isSearch(Advancement root) {
+        return root != null && ADVANCEMENTS_SEARCH_ID.equals(root.getId());
     }
 
     public static boolean isModCommand(@NotNull String command) {

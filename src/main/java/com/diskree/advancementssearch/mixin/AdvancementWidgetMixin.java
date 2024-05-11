@@ -8,9 +8,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
-import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.advancement.PlacedAdvancement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus;
@@ -22,7 +21,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Language;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,7 +42,7 @@ public abstract class AdvancementWidgetMixin {
 
     @Shadow
     @Final
-    private static Identifier TITLE_BOX_TEXTURE;
+    private static Identifier WIDGETS_TEXTURE;
 
     @Shadow
     @Final
@@ -56,7 +54,7 @@ public abstract class AdvancementWidgetMixin {
 
     @Shadow
     @Final
-    public PlacedAdvancement advancement;
+    public Advancement advancement;
 
     @Shadow
     @Final
@@ -82,7 +80,7 @@ public abstract class AdvancementWidgetMixin {
     public void calculateSearchResultHintWidth(
         @NotNull AdvancementTab tab,
         MinecraftClient client,
-        PlacedAdvancement advancement,
+        Advancement advancement,
         AdvancementDisplay display,
         CallbackInfo ci,
         @Local(ordinal = 3) LocalIntRef maxWidthRef
@@ -124,7 +122,7 @@ public abstract class AdvancementWidgetMixin {
         method = "drawTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIIIIIII)V",
+            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V",
             shift = At.Shift.BEFORE,
             ordinal = 0
         ),
@@ -153,7 +151,18 @@ public abstract class AdvancementWidgetMixin {
                 textureY = tooltipY + 26 - textureHeight;
                 textY = tooltipY + 26 - textureHeight + 7;
             }
-            context.drawGuiTexture(TITLE_BOX_TEXTURE, tooltipX, textureY, width, textureHeight);
+            context.drawNineSlicedTexture(
+                WIDGETS_TEXTURE,
+                tooltipX,
+                textureY,
+                width,
+                textureHeight,
+                10,
+                200,
+                26,
+                0,
+                52
+            );
             for (int line = 0; line < searchResultHint.size(); ++line) {
                 context.drawText(
                     client.textRenderer,
@@ -171,7 +180,7 @@ public abstract class AdvancementWidgetMixin {
         method = "renderWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"
+            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V"
         )
     )
     private void highlightWidget(
@@ -179,6 +188,8 @@ public abstract class AdvancementWidgetMixin {
         Identifier texture,
         int x,
         int y,
+        int u,
+        int v,
         int width,
         int height,
         Operation<Void> original
@@ -187,13 +198,13 @@ public abstract class AdvancementWidgetMixin {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id() &&
+                highlightedAdvancementId == advancement.getId() &&
                 screenImpl.advancementssearch$getHighlightType() == HighlightType.WIDGET &&
                 screenImpl.advancementssearch$isHighlightAtInvisibleState()
             ) {
                 return;
             }
-            original.call(context, texture, x, y, width, height);
+            original.call(context, texture, x, y, u, v, width, height);
         }
     }
 
@@ -201,15 +212,15 @@ public abstract class AdvancementWidgetMixin {
         method = "renderWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementObtainedStatus;getFrameTexture(Lnet/minecraft/advancement/AdvancementFrame;)Lnet/minecraft/util/Identifier;"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementObtainedStatus;getSpriteIndex()I"
         )
     )
-    private @Nullable Identifier highlightObtainedStatus(AdvancementObtainedStatus status, AdvancementFrame frame) {
+    private int highlightObtainedStatus(AdvancementObtainedStatus status) {
         if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id() &&
+                highlightedAdvancementId == advancement.getId() &&
                 screenImpl.advancementssearch$getHighlightType() == HighlightType.OBTAINED_STATUS &&
                 screenImpl.advancementssearch$isHighlightAtInvisibleState()
             ) {
@@ -217,7 +228,7 @@ public abstract class AdvancementWidgetMixin {
                     AdvancementObtainedStatus.UNOBTAINED : AdvancementObtainedStatus.OBTAINED;
             }
         }
-        return status.getFrameTexture(frame);
+        return status.getSpriteIndex();
     }
 
     @Inject(
@@ -237,7 +248,7 @@ public abstract class AdvancementWidgetMixin {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id()
+                highlightedAdvancementId == advancement.getId()
             ) {
                 screenImpl.advancementssearch$stopHighlight();
             }
@@ -252,7 +263,7 @@ public abstract class AdvancementWidgetMixin {
         if (original && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) && highlightedAdvancementId != null) {
-                return highlightedAdvancementId == advancement.getAdvancementEntry().id();
+                return highlightedAdvancementId == advancement.getId();
             }
         }
         return original;
