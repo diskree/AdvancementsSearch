@@ -133,6 +133,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Unique
     private int widgetHighlightCounter;
 
+    @Unique
+    private boolean isFocusedAdvancementClicked;
+
     public AdvancementsScreenMixin() {
         super(null);
     }
@@ -240,6 +243,24 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             init(client, width, height);
             searchField.setText(oldText);
         }
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (isFocusedAdvancementClicked &&
+            focusedAdvancementWidget != null &&
+            focusedAdvancementWidget.tab == searchTab &&
+            button == MouseEvent.NOBUTTON
+        ) {
+            Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
+            for (PlacedAdvancement advancement : getAdvancements()) {
+                if (advancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
+                    highlight(advancement, HighlightType.WIDGET);
+                    break;
+                }
+            }
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Unique
@@ -777,18 +798,37 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             isSearchActive = !searchField.getText().isEmpty();
             cir.setReturnValue(true);
         }
-        if (focusedAdvancementWidget != null &&
+        isFocusedAdvancementClicked = focusedAdvancementWidget != null &&
             focusedAdvancementWidget.tab == searchTab &&
-            button == MouseEvent.BUTTON1
-        ) {
-            Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
-            for (PlacedAdvancement advancement : getAdvancements()) {
-                if (advancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
-                    highlight(advancement, HighlightType.WIDGET);
-                    cir.setReturnValue(true);
-                    break;
-                }
-            }
-        }
+            button == MouseEvent.NOBUTTON;
+    }
+
+    @Inject(
+        method = "mouseScrolled",
+        at = @At(value = "HEAD")
+    )
+    private void resetFocusedAdvancementOnScroll(
+        double mouseX,
+        double mouseY,
+        double horizontalAmount,
+        double verticalAmount,
+        CallbackInfoReturnable<Boolean> cir
+    ) {
+        isFocusedAdvancementClicked = false;
+    }
+
+    @Inject(
+        method = "mouseDragged",
+        at = @At(value = "HEAD")
+    )
+    private void resetFocusedAdvancementOnDrag(
+        double mouseX,
+        double mouseY,
+        int button,
+        double deltaX,
+        double deltaY,
+        CallbackInfoReturnable<Boolean> cir
+    ) {
+        isFocusedAdvancementClicked = false;
     }
 }
