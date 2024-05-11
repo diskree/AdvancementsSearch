@@ -131,6 +131,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     @Unique
     private int widgetHighlightCounter;
 
+    @Unique
+    private boolean isFocusedAdvancementClicked;
+
     public AdvancementsScreenMixin() {
         super(null);
     }
@@ -241,6 +244,24 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             init(client, width, height);
             searchField.setText(oldText);
         }
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (isFocusedAdvancementClicked &&
+            focusedAdvancementWidget != null &&
+            focusedAdvancementWidget.tab == searchTab &&
+            button == MouseEvent.NOBUTTON
+        ) {
+            Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getId();
+            for (Advancement advancement : getAdvancements()) {
+                if (advancement.getId().equals(focusedAdvancementId)) {
+                    highlight(advancement, HighlightType.WIDGET);
+                    break;
+                }
+            }
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Unique
@@ -700,18 +721,23 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             isSearchActive = !searchField.getText().isEmpty();
             cir.setReturnValue(true);
         }
-        if (focusedAdvancementWidget != null &&
+        isFocusedAdvancementClicked = focusedAdvancementWidget != null &&
             focusedAdvancementWidget.tab == searchTab &&
-            button == MouseEvent.BUTTON1
-        ) {
-            Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getId();
-            for (Advancement advancement : getAdvancements()) {
-                if (advancement.getId().equals(focusedAdvancementId)) {
-                    highlight(advancement, HighlightType.WIDGET);
-                    cir.setReturnValue(true);
-                    break;
-                }
-            }
-        }
+            button == MouseEvent.NOBUTTON;
+    }
+
+    @Inject(
+        method = "mouseDragged",
+        at = @At(value = "HEAD")
+    )
+    private void resetFocusedAdvancement(
+        double mouseX,
+        double mouseY,
+        int button,
+        double deltaX,
+        double deltaY,
+        CallbackInfoReturnable<Boolean> cir
+    ) {
+        isFocusedAdvancementClicked = false;
     }
 }
