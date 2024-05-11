@@ -373,7 +373,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 searchResultDisplay.shouldAnnounceToChat(),
                 searchResultDisplay.isHidden()
             );
-            searchResultAdvancementDisplay.setPos(columnIndex, rowIndex);
+            searchResultAdvancementDisplay.setPosition(columnIndex, rowIndex);
 
             Advancement.Task searchResultAdvancementBuilder = Advancement.Task.create()
                 .parent(parentAdvancement)
@@ -584,7 +584,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             textRenderer.fontHeight,
             Text.of("")
         );
-        searchField.setDrawsBackground(false);
+        searchField.setHasBorder(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
         children.add(searchField);
         setInitialFocus(searchField);
