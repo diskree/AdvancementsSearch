@@ -347,7 +347,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (searchResults.isEmpty()) {
             return;
         }
-        searchTab.addWidget(searchTab.rootWidget, searchRootAdvancement);
+        searchTab.method_2319(searchTab.field_2696, searchRootAdvancement);
 
         int rowIndex = 0;
         int columnIndex = 0;
@@ -378,7 +378,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             searchResult.getCriteria().forEach(searchResultAdvancementBuilder::criterion);
 
             Advancement searchResultAdvancement = searchResultAdvancementBuilder.build(searchResult.getId());
-            searchTab.addAdvancement(searchResultAdvancement);
+            searchTab.method_2318(searchResultAdvancement);
             searchTab.widgets.get(searchResultAdvancement).setProgress(progresses.get(searchResultAdvancement));
             if (columnIndex == searchResultsColumnsCount - 1) {
                 parentAdvancement = searchRootAdvancement;
@@ -396,15 +396,15 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (searchTab == null) {
             return;
         }
-        searchTab.minPanX = Integer.MAX_VALUE;
-        searchTab.minPanY = Integer.MAX_VALUE;
-        searchTab.maxPanX = Integer.MIN_VALUE;
-        searchTab.maxPanY = Integer.MIN_VALUE;
-        searchTab.originX = searchResultsOriginX;
-        searchTab.originY = 0;
-        searchTab.initialized = true;
+        searchTab.field_2694 = Integer.MAX_VALUE;
+        searchTab.field_2693 = Integer.MAX_VALUE;
+        searchTab.field_2692 = Integer.MIN_VALUE;
+        searchTab.field_2691 = Integer.MIN_VALUE;
+        searchTab.field_2690 = searchResultsOriginX;
+        searchTab.field_2689 = 0;
+        searchTab.field_2683 = true;
         for (AdvancementWidget widget : searchTab.widgets.values()) {
-            widget.parent = null;
+            widget.field_2706 = null;
             widget.children.clear();
         }
         searchTab.widgets.clear();
@@ -443,9 +443,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             if (widget != null && widget.advancement == highlightedAdvancement) {
                 int centerX = (WIDGET_SIZE - advancementssearch$getTreeWidth()) / 2;
                 int centerY = (WIDGET_SIZE - advancementssearch$getTreeHeight()) / 2;
-                selectedTab.move(
-                    -(selectedTab.originX + widget.getX() + TREE_X_OFFSET + centerX),
-                    -(selectedTab.originY + widget.getY() + centerY)
+                selectedTab.method_2313(
+                    -(selectedTab.field_2690 + widget.method_2327() + TREE_X_OFFSET + centerX),
+                    -(selectedTab.field_2689 + widget.method_2326() + centerY)
                 );
                 highlightedAdvancement = null;
                 highlightedAdvancementId = widget.advancement.getId();
@@ -501,7 +501,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawWidgetTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(IIII)V"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;method_2314(IIII)V"
         )
     )
     private void drawWidgetTooltipRedirectTab(
@@ -514,7 +514,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (isSearchActive) {
             selectedTab = searchTab;
         }
-        selectedTab.drawWidgetTooltip(mouseX, mouseY, x, y);
+        selectedTab.method_2314(mouseX, mouseY, x, y);
     }
 
     @Redirect(

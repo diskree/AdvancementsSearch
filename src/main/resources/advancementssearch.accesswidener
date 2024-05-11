@@ -1,19 +1,21 @@
 accessWidener v2 named
 
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab rootWidget Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2696 Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab widgets Ljava/util/Map;
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab originX D
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab originY D
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab minPanX I
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab minPanY I
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab maxPanX I
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab maxPanY I
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab initialized Z
-accessible method net/minecraft/client/gui/screen/advancement/AdvancementTab addWidget (Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;Lnet/minecraft/advancement/Advancement;)V
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2690 D
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2689 D
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2694 I
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2693 I
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2692 I
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2691 I
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2683 Z
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab field_2687 Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementTab root Lnet/minecraft/advancement/Advancement;
+accessible method net/minecraft/client/gui/screen/advancement/AdvancementTab method_2319 (Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;Lnet/minecraft/advancement/Advancement;)V
 
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget tab Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget advancement Lnet/minecraft/advancement/Advancement;
-accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget parent Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;
+accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget field_2706 Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;
 accessible field net/minecraft/client/gui/screen/advancement/AdvancementWidget children Ljava/util/List;
 
 accessible field net/minecraft/client/network/ClientAdvancementManager advancementProgresses Ljava/util/Map;

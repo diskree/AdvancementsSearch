@@ -31,7 +31,7 @@ public abstract class AdvancementWidgetMixin {
     public Advancement advancement;
 
     @Inject(
-        method = "renderLines",
+        method = "method_2323",
         at = @At(value = "HEAD"),
         cancellable = true
     )
@@ -41,13 +41,13 @@ public abstract class AdvancementWidgetMixin {
         boolean border,
         CallbackInfo ci
     ) {
-        if (AdvancementsSearch.isSearch(tab.getRoot())) {
+        if (AdvancementsSearch.isSearch(tab.root)) {
             ci.cancel();
         }
     }
 
     @WrapOperation(
-        method = "renderWidgets",
+        method = "method_2325",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;blit(IIIIII)V"
@@ -63,9 +63,9 @@ public abstract class AdvancementWidgetMixin {
         int height,
         Operation<Void> original
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (tab.field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
+            if (!AdvancementsSearch.isSearch(tab.root) &&
                 highlightedAdvancementId != null &&
                 highlightedAdvancementId == advancement.getId() &&
                 screenImpl.advancementssearch$getHighlightType() == HighlightType.WIDGET &&
@@ -78,16 +78,16 @@ public abstract class AdvancementWidgetMixin {
     }
 
     @Redirect(
-        method = "renderWidgets",
+        method = "method_2325",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementObtainedStatus;getSpriteIndex()I"
         )
     )
     private int highlightObtainedStatus(AdvancementObtainedStatus status) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (tab.field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
+            if (!AdvancementsSearch.isSearch(tab.root) &&
                 highlightedAdvancementId != null &&
                 highlightedAdvancementId == advancement.getId() &&
                 screenImpl.advancementssearch$getHighlightType() == HighlightType.OBTAINED_STATUS &&
@@ -101,7 +101,7 @@ public abstract class AdvancementWidgetMixin {
     }
 
     @Inject(
-        method = "drawTooltip",
+        method = "method_2331",
         at = @At(value = "HEAD")
     )
     public void checkHighlight(
@@ -112,9 +112,9 @@ public abstract class AdvancementWidgetMixin {
         int y,
         CallbackInfo ci
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (tab.field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
+            if (!AdvancementsSearch.isSearch(tab.root) &&
                 highlightedAdvancementId != null &&
                 highlightedAdvancementId == advancement.getId()
             ) {
@@ -124,13 +124,13 @@ public abstract class AdvancementWidgetMixin {
     }
 
     @ModifyReturnValue(
-        method = "shouldRender",
+        method = "method_2329",
         at = @At(value = "TAIL")
     )
     public boolean cancelTooltipRender(boolean original) {
-        if (original && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        if (original && tab.field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) && highlightedAdvancementId != null) {
+            if (!AdvancementsSearch.isSearch(tab.root) && highlightedAdvancementId != null) {
                 return highlightedAdvancementId == advancement.getId();
             }
         }

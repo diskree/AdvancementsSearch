@@ -22,13 +22,13 @@ public class AdvancementTabMixin {
 
     @Shadow
     @Final
-    private AdvancementsScreen screen;
+    private AdvancementsScreen field_2687;
 
     @Inject(
-        method = "drawWidgetTooltip",
+        method = "method_2314",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(IIFII)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;method_2331(IIFII)V",
             shift = At.Shift.AFTER
         ),
         locals = LocalCapture.CAPTURE_FAILHARD
@@ -41,16 +41,16 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) AdvancementWidget advancementWidget
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl) {
+        if (field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             screenImpl.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
         }
     }
 
     @Inject(
-        method = "drawWidgetTooltip",
+        method = "method_2314",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/systems/RenderSystem;popMatrix()V",
+            target = "Lcom/mojang/blaze3d/platform/GlStateManager;popMatrix()V",
             shift = At.Shift.AFTER
         ),
         locals = LocalCapture.CAPTURE_FAILHARD
@@ -63,13 +63,13 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) boolean shouldShowTooltip
     ) {
-        if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl screenImpl) {
+        if (!shouldShowTooltip && field_2687 instanceof AdvancementsScreenImpl screenImpl) {
             screenImpl.advancementssearch$setFocusedAdvancementWidget(null);
         }
     }
 
     @WrapOperation(
-        method = "render",
+        method = "method_2310",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;blit(IIFFIIII)V"
@@ -86,22 +86,22 @@ public class AdvancementTabMixin {
         int textureHeight,
         Operation<Void> original
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
+        if (field_2687 instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
             original.call(x, y, u, v, width, height, textureWidth, textureHeight);
         }
     }
 
     @Inject(
-        method = "render",
+        method = "method_2310",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(IIZ)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;method_2323(IIZ)V",
             shift = At.Shift.BEFORE,
             ordinal = 0
         )
     )
     public void drawBlackBackgroundInSearch(CallbackInfo ci) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
+        if (field_2687 instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
             AdvancementTab.fill(
                 0,
                 0,
