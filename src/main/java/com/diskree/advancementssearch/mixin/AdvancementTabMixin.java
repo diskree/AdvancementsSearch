@@ -104,7 +104,7 @@ public class AdvancementTabMixin {
             ordinal = 0
         )
     )
-    public void drawBlackBackgroundInSearch(MatrixStack matrices, int x, int y, CallbackInfo ci) {
+    public void drawBlackBackgroundInSearch(MatrixStack matrices, CallbackInfo ci) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
             AdvancementTab.fill(
                 matrices,

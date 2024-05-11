@@ -56,6 +56,7 @@ public abstract class AdvancementWidgetMixin {
         )
     )
     private void highlightWidget(
+        AdvancementWidget widget,
         MatrixStack matrices,
         int x,
         int y,
@@ -75,7 +76,7 @@ public abstract class AdvancementWidgetMixin {
             ) {
                 return;
             }
-            original.call(matrices, x, y, u, v, width, height);
+            original.call(widget, matrices, x, y, u, v, width, height);
         }
     }
 

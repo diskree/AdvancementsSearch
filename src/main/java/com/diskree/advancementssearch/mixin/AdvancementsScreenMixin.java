@@ -424,7 +424,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         isSearchActive = false;
         highlightedAdvancement = advancement;
         highlightType = type;
-        advancementHandler.selectTab(advancement.getRoot(), true);
+        while (advancement.getParent() != null) {
+            advancement = advancement.getParent();
+        }
+        advancementHandler.selectTab(advancement, true);
     }
 
     @Shadow
@@ -491,7 +494,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawAdvancementTree",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredTextWithShadow(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredText(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
             ordinal = 0
         )
     )
@@ -505,7 +508,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawAdvancementTree",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredTextWithShadow(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredText(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
             ordinal = 1
         )
     )
@@ -675,7 +678,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int fieldY = windowY + 4;
 
             RenderSystem.setShaderTexture(0, CREATIVE_INVENTORY_TEXTURE);
-            AdvancementsScreen.drawTexture(
+            drawTexture(
                 matrices,
                 fieldX,
                 fieldY,
