@@ -380,7 +380,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 .parent(parentAdvancement)
                 .display(searchResultAdvancementDisplay)
                 .rewards(searchResult.getRewards())
-                .requirements(searchResult.getRequirements());
+                .method_34884(searchResult.getRequirements());
             searchResult.getCriteria().forEach(searchResultAdvancementBuilder::criterion);
 
             Advancement searchResultAdvancement = searchResultAdvancementBuilder.build(searchResult.getId());

@@ -111,7 +111,7 @@ public class AdvancementsSearch implements ClientModInitializer {
     ) {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
-            client.setScreen(screen);
+            client.openScreen(screen);
             if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
                 screenImpl.advancementssearch$search(query, searchByType, autoHighlightSingle, highlightType);
             }
@@ -126,7 +126,7 @@ public class AdvancementsSearch implements ClientModInitializer {
     ) {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
-            client.setScreen(screen);
+            client.openScreen(screen);
             if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
                 screenImpl.advancementssearch$highlightAdvancement(advancementId, highlightType);
             }
