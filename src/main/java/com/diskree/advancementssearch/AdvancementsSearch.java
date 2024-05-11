@@ -8,8 +8,8 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v1.FabricClientCommandSource;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
@@ -20,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+import static net.fabricmc.fabric.api.client.command.v1.ClientCommandManager.argument;
+import static net.fabricmc.fabric.api.client.command.v1.ClientCommandManager.literal;
 
 public class AdvancementsSearch implements ClientModInitializer {
 
@@ -38,36 +38,35 @@ public class AdvancementsSearch implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-            dispatcher.register(literal(BuildConfig.MOD_ID)
-                .then(literal("search")
-                    .then(argument("query", StringArgumentType.string())
-                        .then(argument("by", StringArgumentType.word())
-                            .suggests(new SearchByTypeSuggestionProvider())
-                            .then(argument("autoHighlightSingle", BoolArgumentType.bool())
-                                .then(argument("highlightType", StringArgumentType.word())
-                                    .suggests(new HighlightTypeSuggestionProvider())
-                                    .executes(context -> search(
-                                        context.getSource().getClient(),
-                                        StringArgumentType.getString(context, "query"),
-                                        SearchByType.map(StringArgumentType.getString(context, "by")),
-                                        BoolArgumentType.getBool(context, "autoHighlightSingle"),
-                                        HighlightType.map(StringArgumentType.getString(context, "highlightType")))
-                                    )
+        ClientCommandManager.DISPATCHER.register(ClientCommandManager
+            .literal(BuildConfig.MOD_ID)
+            .then(literal("search")
+                .then(argument("query", StringArgumentType.string())
+                    .then(argument("by", StringArgumentType.word())
+                        .suggests(new SearchByTypeSuggestionProvider())
+                        .then(argument("autoHighlightSingle", BoolArgumentType.bool())
+                            .then(argument("highlightType", StringArgumentType.word())
+                                .suggests(new HighlightTypeSuggestionProvider())
+                                .executes(context -> search(
+                                    context.getSource().getClient(),
+                                    StringArgumentType.getString(context, "query"),
+                                    SearchByType.map(StringArgumentType.getString(context, "by")),
+                                    BoolArgumentType.getBool(context, "autoHighlightSingle"),
+                                    HighlightType.map(StringArgumentType.getString(context, "highlightType")))
                                 )
                             )
                         )
                     )
                 )
-                .then(literal("highlight")
-                    .then(argument("advancementId", IdentifierArgumentType.identifier())
-                        .then(argument("highlightType", StringArgumentType.word())
-                            .suggests(new HighlightTypeSuggestionProvider())
-                            .executes(context -> highlight(
-                                context.getSource().getClient(),
-                                context.getArgument("advancementId", Identifier.class),
-                                HighlightType.map(StringArgumentType.getString(context, "highlightType")))
-                            )
+            )
+            .then(literal("highlight")
+                .then(argument("advancementId", IdentifierArgumentType.identifier())
+                    .then(argument("highlightType", StringArgumentType.word())
+                        .suggests(new HighlightTypeSuggestionProvider())
+                        .executes(context -> highlight(
+                            context.getSource().getClient(),
+                            context.getArgument("advancementId", Identifier.class),
+                            HighlightType.map(StringArgumentType.getString(context, "highlightType")))
                         )
                     )
                 )

@@ -21,8 +21,8 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -500,7 +500,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     private void drawAdvancementTreeModifyText(Args args) {
         if (isSearchActive) {
-            args.set(2, Text.translatable("advancementssearch.advancements_not_found"));
+            args.set(2, new TranslatableText("advancementssearch.advancements_not_found"));
         }
     }
 
@@ -584,7 +584,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             0,
             SEARCH_FIELD_WIDTH - SEARCH_FIELD_TEXT_LEFT_OFFSET - 8,
             textRenderer.fontHeight,
-            ScreenTexts.EMPTY
+            Text.of("")
         );
         searchField.setDrawsBackground(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
@@ -594,8 +594,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (searchTab == null) {
             AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
                 ItemStack.EMPTY,
-                Text.empty(),
-                Text.empty(),
+                Text.of(""),
+                Text.of(""),
                 null,
                 AdvancementFrame.TASK,
                 false,
