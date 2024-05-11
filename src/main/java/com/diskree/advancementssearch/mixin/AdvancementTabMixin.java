@@ -4,12 +4,10 @@ import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
-import net.minecraft.util.Colors;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
+import java.awt.*;
 
 @Mixin(AdvancementTab.class)
 public class AdvancementTabMixin {
@@ -29,13 +29,13 @@ public class AdvancementTabMixin {
         method = "drawWidgetTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(Lnet/minecraft/client/gui/DrawContext;IIFII)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(Lnet/minecraft/client/util/math/MatrixStack;IIFII)V",
             shift = At.Shift.AFTER
         ),
         locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void saveFocusedAdvancementWidget(
-        DrawContext context,
+        MatrixStack matrices,
         int mouseX,
         int mouseY,
         int x,
@@ -58,7 +58,7 @@ public class AdvancementTabMixin {
         locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void resetFocusedAdvancementWidget(
-        DrawContext context,
+        MatrixStack matrices,
         int mouseX,
         int mouseY,
         int x,
@@ -75,12 +75,11 @@ public class AdvancementTabMixin {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIFFIIII)V"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawTexture(Lnet/minecraft/client/util/math/MatrixStack;IIFFIIII)V"
         )
     )
     private void cancelBackgroundRenderInSearch(
-        DrawContext context,
-        Identifier texture,
+        MatrixStack matrices,
         int x,
         int y,
         float u,
@@ -92,7 +91,7 @@ public class AdvancementTabMixin {
         Operation<Void> original
     ) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
-            original.call(context, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+            original.call(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
         }
     }
 
@@ -100,19 +99,20 @@ public class AdvancementTabMixin {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/gui/DrawContext;IIZ)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/util/math/MatrixStack;IIZ)V",
             shift = At.Shift.BEFORE,
             ordinal = 0
         )
     )
-    public void drawBlackBackgroundInSearch(DrawContext context, int x, int y, CallbackInfo ci) {
+    public void drawBlackBackgroundInSearch(MatrixStack matrices, int x, int y, CallbackInfo ci) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
-            context.fill(
+            AdvancementTab.fill(
+                matrices,
                 0,
                 0,
                 screenImpl.advancementssearch$getTreeWidth(),
                 screenImpl.advancementssearch$getTreeHeight(),
-                Colors.BLACK
+                Color.BLACK.getRGB()
             );
         }
     }
