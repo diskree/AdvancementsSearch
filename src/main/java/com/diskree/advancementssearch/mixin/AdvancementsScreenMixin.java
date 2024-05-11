@@ -4,8 +4,6 @@ import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -506,43 +504,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     private @Nullable AdvancementTab drawAdvancementTreeInject(AdvancementsScreen screen) {
         return !isSearchActive ? selectedTab : searchTab.widgets.size() > 1 ? searchTab : null;
     }
-
-    @ModifyArgs(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 0
-        )
-    )
-    private void drawAdvancementTreeModifyText(Args args) {
-        if (isSearchActive) {
-            args.set(1, Text.translatable("advancementssearch.advancements_not_found"));
-        }
-    }
-
-    @WrapOperation(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 1
-        )
-    )
-    private void cancelSadLabelRenderInSearch(
-        DrawContext context,
-        TextRenderer textRenderer,
-        Text text,
-        int centerX,
-        int y,
-        int color,
-        Operation<Void> original
-    ) {
-        if (!isSearchActive) {
-            original.call(context, textRenderer, text, centerX, y, color);
-        }
-    }
-
 
     @ModifyArgs(
         method = "drawWindow",
