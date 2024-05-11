@@ -3,7 +3,7 @@
 	"id": "${modId}",
 	"version": "${modVersion}",
 	"name": "${modName}",
-	"description": "Search in the advancements window.",
+	"description": "A client-side mod that adds a search feature to the advancements window.",
 	"authors": [
 		"${author}"
 	],
