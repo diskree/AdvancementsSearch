@@ -15,7 +15,6 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
@@ -436,7 +435,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawAdvancementTree",
         at = @At("TAIL")
     )
-    private void startHighlight(MatrixStack matrices, int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
+    private void startHighlight(int mouseX, int mouseY, int x, int y, CallbackInfo ci) {
         if (highlightedAdvancement == null || selectedTab == null) {
             return;
         }
@@ -489,12 +488,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawBackground(Lnet/minecraft/client/util/math/MatrixStack;IIZ)V"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawBackground(IIZ)V"
         )
     )
     private void drawWindowModifyTabSelected(Args args) {
         if (isSearchActive) {
-            args.set(3, false);
+            args.set(2, false);
         }
     }
 
@@ -502,12 +501,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "drawWidgetTooltip",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(Lnet/minecraft/client/util/math/MatrixStack;IIII)V"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementTab;drawWidgetTooltip(IIII)V"
         )
     )
     private void drawWidgetTooltipRedirectTab(
         AdvancementTab selectedTab,
-        MatrixStack matrices,
         int mouseX,
         int mouseY,
         int x,
@@ -516,7 +514,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (isSearchActive) {
             selectedTab = searchTab;
         }
-        selectedTab.drawWidgetTooltip(matrices, mouseX, mouseY, x, y);
+        selectedTab.drawWidgetTooltip(mouseX, mouseY, x, y);
     }
 
     @Redirect(
@@ -537,12 +535,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     )
     public void initInject(CallbackInfo ci) {
         searchField = new TextFieldWidget(
-            textRenderer,
+            font,
             0,
             0,
             SEARCH_FIELD_WIDTH - SEARCH_FIELD_TEXT_LEFT_OFFSET - 8,
-            textRenderer.fontHeight,
-            LiteralText.EMPTY
+            font.fontHeight,
+            ""
         );
         searchField.setHasBorder(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
@@ -552,8 +550,8 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         if (searchTab == null) {
             AdvancementDisplay searchRootAdvancementDisplay = new AdvancementDisplay(
                 ItemStack.EMPTY,
-                LiteralText.EMPTY,
-                LiteralText.EMPTY,
+                new LiteralText(""),
+                new LiteralText(""),
                 null,
                 AdvancementFrame.TASK,
                 false,
@@ -564,9 +562,9 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 .display(searchRootAdvancementDisplay)
                 .build(AdvancementsSearch.ADVANCEMENTS_SEARCH_ID);
             AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;
-            if (client != null) {
+            if (minecraft != null) {
                 searchTab = new AdvancementTab(
-                    client,
+                    minecraft,
                     advancementsScreen,
                     null,
                     0,
@@ -581,13 +579,12 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;renderBackground(Lnet/minecraft/client/util/math/MatrixStack;)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;renderBackground()V",
             shift = At.Shift.BEFORE
         ),
         locals = LocalCapture.CAPTURE_FAILHARD
     )
     public void getWindowSizes(
-        MatrixStack matrices,
         int mouseX,
         int mouseY,
         float delta,
@@ -605,12 +602,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWidgetTooltip(Lnet/minecraft/client/util/math/MatrixStack;IIII)V",
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawWidgetTooltip(IIII)V",
             shift = At.Shift.BEFORE
         )
     )
     public void renderInject(
-        MatrixStack matrices,
         int mouseX,
         int mouseY,
         float delta,
@@ -635,11 +631,10 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int fieldX = windowX + treeWidth + WINDOW_BORDER_SIZE - SEARCH_FIELD_WIDTH + symmetryFixX;
             int fieldY = windowY + 4;
 
-            if (client != null) {
-                client.getTextureManager().bindTexture(CREATIVE_INVENTORY_TEXTURE);
+            if (minecraft != null) {
+                minecraft.getTextureManager().bindTexture(CREATIVE_INVENTORY_TEXTURE);
             }
-            drawTexture(
-                matrices,
+            blit(
                 fieldX,
                 fieldY,
                 SEARCH_FIELD_UV.x,
@@ -650,7 +645,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
             searchField.setX(fieldX + SEARCH_FIELD_TEXT_LEFT_OFFSET);
             searchField.y = fieldY + SEARCH_FIELD_TEXT_LEFT_OFFSET;
-            searchField.render(matrices, mouseX, mouseY, delta);
+            searchField.render(mouseX, mouseY, delta);
         }
     }
 

@@ -10,7 +10,6 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,7 +36,6 @@ public abstract class AdvancementWidgetMixin {
         cancellable = true
     )
     public void cancelLinesRenderInSearch(
-        MatrixStack matrices,
         int x,
         int y,
         boolean border,
@@ -52,12 +50,11 @@ public abstract class AdvancementWidgetMixin {
         method = "renderWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTexture(Lnet/minecraft/client/util/math/MatrixStack;IIIIII)V"
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;blit(IIIIII)V"
         )
     )
     private void highlightWidget(
         AdvancementWidget widget,
-        MatrixStack matrices,
         int x,
         int y,
         int u,
@@ -76,7 +73,7 @@ public abstract class AdvancementWidgetMixin {
             ) {
                 return;
             }
-            original.call(widget, matrices, x, y, u, v, width, height);
+            original.call(widget, x, y, u, v, width, height);
         }
     }
 
@@ -108,7 +105,6 @@ public abstract class AdvancementWidgetMixin {
         at = @At(value = "HEAD")
     )
     public void checkHighlight(
-        MatrixStack matrices,
         int originX,
         int originY,
         float alpha,
