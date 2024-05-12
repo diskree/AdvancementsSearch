@@ -4,14 +4,11 @@ import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
@@ -21,7 +18,6 @@ import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -490,42 +486,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @ModifyArgs(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredText(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 0
-        )
-    )
-    private void drawAdvancementTreeModifyText(Args args) {
-        if (isSearchActive) {
-            args.set(2, new TranslatableText("advancementssearch.advancements_not_found"));
-        }
-    }
-
-    @WrapOperation(
-        method = "drawAdvancementTree",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawCenteredText(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V",
-            ordinal = 1
-        )
-    )
-    private void cancelSadLabelRenderInSearch(
-        MatrixStack matrices,
-        TextRenderer textRenderer,
-        Text text,
-        int centerX,
-        int y,
-        int color,
-        Operation<Void> original
-    ) {
-        if (!isSearchActive) {
-            original.call(matrices, textRenderer, text, centerX, y, color);
-        }
-    }
-
-    @ModifyArgs(
         method = "drawWidgets",
         at = @At(
             value = "INVOKE",
@@ -586,6 +546,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         );
         searchField.setDrawsBackground(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
+        searchField.setFocusUnlocked(false);
         children.add(searchField);
         setInitialFocus(searchField);
 
