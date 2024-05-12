@@ -546,6 +546,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         );
         searchField.setHasBorder(false);
         searchField.setEditableColor(Color.WHITE.getRGB());
+        searchField.setFocusUnlocked(false);
         children.add(searchField);
         setInitialFocus(searchField);
 
