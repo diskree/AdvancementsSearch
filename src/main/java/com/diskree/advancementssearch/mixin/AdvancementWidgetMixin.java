@@ -10,6 +10,7 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
+import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
@@ -66,7 +67,9 @@ public abstract class AdvancementWidgetMixin {
         int height,
         Operation<Void> original
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        AdvancementsScreen screen = tab.getScreen();
+        if (screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
@@ -88,7 +91,9 @@ public abstract class AdvancementWidgetMixin {
         )
     )
     private int highlightObtainedStatus(AdvancementObtainedStatus status) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        AdvancementsScreen screen = tab.getScreen();
+        if (screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
@@ -116,7 +121,9 @@ public abstract class AdvancementWidgetMixin {
         int y,
         CallbackInfo ci
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        AdvancementsScreen screen = tab.getScreen();
+        if (screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
                 highlightedAdvancementId != null &&
@@ -132,7 +139,9 @@ public abstract class AdvancementWidgetMixin {
         at = @At(value = "TAIL")
     )
     public boolean cancelTooltipRender(boolean original) {
-        if (original && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
+        AdvancementsScreen screen = tab.getScreen();
+        if (original && screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
             Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
             if (!AdvancementsSearch.isSearch(tab.getRoot()) && highlightedAdvancementId != null) {
                 return highlightedAdvancementId == advancement.getId();
