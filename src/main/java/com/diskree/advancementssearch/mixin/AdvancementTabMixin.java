@@ -43,8 +43,8 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) AdvancementWidget advancementWidget
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl) {
-            screenImpl.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
+        if (screen instanceof AdvancementsScreenImpl) {
+            ((AdvancementsScreenImpl) screen).advancementssearch$setFocusedAdvancementWidget(advancementWidget);
         }
     }
 
@@ -66,8 +66,8 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) boolean shouldShowTooltip
     ) {
-        if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl screenImpl) {
-            screenImpl.advancementssearch$setFocusedAdvancementWidget(null);
+        if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl) {
+            ((AdvancementsScreenImpl) screen).advancementssearch$setFocusedAdvancementWidget(null);
         }
     }
 
@@ -90,8 +90,11 @@ public class AdvancementTabMixin {
         int textureHeight,
         Operation<Void> original
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
-            original.call(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
+        if (screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
+            if (!screenImpl.advancementssearch$isSearchActive()) {
+                original.call(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
+            }
         }
     }
 
@@ -105,15 +108,18 @@ public class AdvancementTabMixin {
         )
     )
     public void drawBlackBackgroundInSearch(MatrixStack matrices, CallbackInfo ci) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
-            AdvancementTab.fill(
-                matrices,
-                0,
-                0,
-                screenImpl.advancementssearch$getTreeWidth(),
-                screenImpl.advancementssearch$getTreeHeight(),
-                Color.BLACK.getRGB()
-            );
+        if (screen instanceof AdvancementsScreenImpl) {
+            AdvancementsScreenImpl screenImpl = (AdvancementsScreenImpl) screen;
+            if (screenImpl.advancementssearch$isSearchActive()) {
+                AdvancementTab.fill(
+                    matrices,
+                    0,
+                    0,
+                    screenImpl.advancementssearch$getTreeWidth(),
+                    screenImpl.advancementssearch$getTreeHeight(),
+                    Color.BLACK.getRGB()
+                );
+            }
         }
     }
 }
