@@ -48,7 +48,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Unique
     private static final Identifier CREATIVE_INVENTORY_TEXTURE =
-        new Identifier("textures/gui/container/creative_inventory/tab_item_search.png");
+        Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_item_search.png");
 
     @Unique
     private static final Text SEARCH_TITLE = Text.translatable("gui.recipebook.search_hint");
@@ -189,7 +189,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     ) {
         searchInternal(query, searchByType);
         if (autoHighlightSingle && searchResults.size() == 1) {
-            highlight(searchResults.get(0), highlightType);
+            highlight(searchResults.getFirst(), highlightType);
             searchResults.clear();
             return;
         }

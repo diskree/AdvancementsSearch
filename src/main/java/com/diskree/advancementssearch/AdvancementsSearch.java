@@ -26,12 +26,13 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 public class AdvancementsSearch implements ClientModInitializer {
 
     public static final Identifier ADVANCEMENTS_SEARCH_ID =
-        new Identifier(BuildConfig.MOD_ID, BuildConfig.MOD_ID + "/root");
+        Identifier.of(BuildConfig.MOD_ID, BuildConfig.MOD_ID + "/root");
 
     public static boolean isSearch(PlacedAdvancement root) {
         return root != null && ADVANCEMENTS_SEARCH_ID.equals(root.getAdvancementEntry().id());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isModCommand(@NotNull String command) {
         return command.startsWith("/" + BuildConfig.MOD_ID + " ");
     }
