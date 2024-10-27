@@ -4,6 +4,8 @@ import com.diskree.advancementssearch.AdvancementsScreenImpl;
 import com.diskree.advancementssearch.AdvancementsSearch;
 import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -14,6 +16,7 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientAdvancementManager;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
@@ -35,7 +38,6 @@ import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.awt.*;
@@ -656,28 +658,27 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
         }
     }
 
-    @Inject(
+    @WrapOperation(
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawAdvancementTree(Lnet/minecraft/client/gui/DrawContext;IIII)V",
-            shift = At.Shift.BEFORE
-        ),
-        locals = LocalCapture.CAPTURE_FAILHARD
+            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementsScreen;drawAdvancementTree(Lnet/minecraft/client/gui/DrawContext;IIII)V"
+        )
     )
     public void getWindowSizes(
+        AdvancementsScreen screen,
         DrawContext context,
         int mouseX,
         int mouseY,
-        float delta,
-        CallbackInfo ci,
-        int windowX,
-        int windowY
+        int x,
+        int y,
+        @NotNull Operation<Void> original
     ) {
-        this.windowX = windowX;
-        this.windowY = windowY;
+        windowX = x;
+        windowY = y;
         treeWidth = Math.abs(windowX * 2 - width) - WINDOW_BORDER_SIZE - WINDOW_BORDER_SIZE;
         treeHeight = Math.abs(windowY * 2 - height) - WINDOW_HEADER_HEIGHT - WINDOW_BORDER_SIZE;
+        original.call(screen, context, mouseX, mouseY, x, y);
     }
 
     @Inject(
@@ -715,13 +716,16 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             int fieldY = windowY + 4;
 
             context.drawTexture(
+                RenderLayer::getGuiTextured,
                 CREATIVE_INVENTORY_TEXTURE,
                 fieldX,
                 fieldY,
                 SEARCH_FIELD_UV.x,
                 SEARCH_FIELD_UV.y,
                 SEARCH_FIELD_WIDTH,
-                SEARCH_FIELD_HEIGHT
+                SEARCH_FIELD_HEIGHT,
+                256,
+                256
             );
 
             searchField.setX(fieldX + SEARCH_FIELD_TEXT_LEFT_OFFSET);

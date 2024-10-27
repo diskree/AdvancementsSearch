@@ -8,6 +8,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
@@ -16,7 +17,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
+import java.util.function.Function;
 
 @Mixin(AdvancementTab.class)
 public class AdvancementTabMixin {
@@ -31,8 +33,7 @@ public class AdvancementTabMixin {
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;drawTooltip(Lnet/minecraft/client/gui/DrawContext;IIFII)V",
             shift = At.Shift.AFTER
-        ),
-        locals = LocalCapture.CAPTURE_FAILHARD
+        )
     )
     public void saveFocusedAdvancementWidget(
         DrawContext context,
@@ -54,8 +55,7 @@ public class AdvancementTabMixin {
             value = "INVOKE",
             target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V",
             shift = At.Shift.AFTER
-        ),
-        locals = LocalCapture.CAPTURE_FAILHARD
+        )
     )
     public void resetFocusedAdvancementWidget(
         DrawContext context,
@@ -75,12 +75,13 @@ public class AdvancementTabMixin {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIFFIIII)V"
+            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIFFIIII)V"
         )
     )
     private void cancelBackgroundRenderInSearch(
         DrawContext context,
-        Identifier texture,
+        Function<Identifier, RenderLayer> renderLayers,
+        Identifier sprite,
         int x,
         int y,
         float u,
@@ -92,20 +93,26 @@ public class AdvancementTabMixin {
         Operation<Void> original
     ) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
-            original.call(context, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+            original.call(context, renderLayers, sprite, x, y, u, v, width, height, textureWidth, textureHeight);
         }
     }
 
-    @Inject(
+    @WrapOperation(
         method = "render",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/gui/DrawContext;IIZ)V",
-            shift = At.Shift.BEFORE,
             ordinal = 0
         )
     )
-    public void drawBlackBackgroundInSearch(DrawContext context, int x, int y, CallbackInfo ci) {
+    public void drawBlackBackgroundInSearch(
+        AdvancementWidget instance,
+        DrawContext context,
+        int x,
+        int y,
+        boolean border,
+        Operation<Void> original
+    ) {
         if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
             context.fill(
                 0,
@@ -115,5 +122,6 @@ public class AdvancementTabMixin {
                 Colors.BLACK
             );
         }
+        original.call(instance, context, x, y, border);
     }
 }

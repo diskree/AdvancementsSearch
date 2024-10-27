@@ -12,6 +12,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -21,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.function.Function;
 
 @Mixin(AdvancementWidget.class)
 public abstract class AdvancementWidgetMixin {
@@ -54,12 +57,13 @@ public abstract class AdvancementWidgetMixin {
         method = "renderWidgets",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"
+            target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIII)V"
         )
     )
     private void highlightWidget(
         DrawContext context,
-        Identifier texture,
+        Function<Identifier, RenderLayer> renderLayers,
+        Identifier sprite,
         int x,
         int y,
         int width,
@@ -76,7 +80,7 @@ public abstract class AdvancementWidgetMixin {
             ) {
                 return;
             }
-            original.call(context, texture, x, y, width, height);
+            original.call(context, renderLayers, sprite, x, y, width, height);
         }
     }
 
