@@ -203,7 +203,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
 
     @Override
     public void advancementssearch$highlightAdvancement(Identifier advancementId, HighlightType highlightType) {
-        for (PlacedAdvancement advancement : getAdvancements()) {
+        for (PlacedAdvancement advancement : getAdvancements(false)) {
             if (advancementId.equals(advancement.getAdvancementEntry().id())) {
                 highlight(advancement, highlightType);
                 break;
@@ -253,7 +253,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             button == MouseEvent.NOBUTTON
         ) {
             Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
-            for (PlacedAdvancement advancement : getAdvancements()) {
+            for (PlacedAdvancement advancement : getAdvancements(true)) {
                 if (advancement.getAdvancementEntry().id().equals(focusedAdvancementId)) {
                     highlight(advancement, HighlightType.WIDGET);
                     break;
@@ -264,7 +264,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Unique
-    private @NotNull ArrayList<PlacedAdvancement> getAdvancements() {
+    private @NotNull ArrayList<PlacedAdvancement> getAdvancements(boolean shouldExcludeRoots) {
         ArrayList<PlacedAdvancement> advancements = new ArrayList<>();
         AdvancementManager advancementManager = advancementHandler.getManager();
         Map<AdvancementEntry, AdvancementProgress> progresses = advancementHandler.advancementProgresses;
@@ -273,7 +273,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 continue;
             }
             Advancement advancement = advancementEntry.value();
-            if (advancement.isRoot()) {
+            if (shouldExcludeRoots && advancement.isRoot()) {
                 continue;
             }
             AdvancementDisplay display = advancementEntry.value().display().orElse(null);
@@ -318,7 +318,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
             return;
         }
         boolean checkEverywhere = searchByType == SearchByType.EVERYWHERE;
-        for (PlacedAdvancement placedAdvancement : getAdvancements()) {
+        for (PlacedAdvancement placedAdvancement : getAdvancements(true)) {
             AdvancementDisplay display = placedAdvancement.getAdvancement().display().orElse(null);
             if (display == null) {
                 continue;
