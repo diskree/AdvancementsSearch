@@ -1,6 +1,6 @@
-package com.diskree.advancementssearch.mixin;
+package com.diskree.advancementssearch.injection.mixin;
 
-import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.AdvancementsSearchMod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -25,7 +25,7 @@ public class BookScreenMixin {
         Operation<Void> original,
         @Local @NotNull ClickEvent clickEvent
     ) {
-        if (!AdvancementsSearch.isModCommand(clickEvent.getValue())) {
+        if (!AdvancementsSearchMod.isModCommand(clickEvent.getValue())) {
             original.call(screen);
         }
     }

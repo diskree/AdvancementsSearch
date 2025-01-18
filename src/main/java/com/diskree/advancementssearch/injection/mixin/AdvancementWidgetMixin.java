@@ -1,7 +1,7 @@
-package com.diskree.advancementssearch.mixin;
+package com.diskree.advancementssearch.injection.mixin;
 
-import com.diskree.advancementssearch.AdvancementsScreenImpl;
-import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.AdvancementsSearchMod;
+import com.diskree.advancementssearch.injection.extension.AdvancementsScreenExtension;
 import com.diskree.advancementssearch.HighlightType;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -48,7 +48,7 @@ public abstract class AdvancementWidgetMixin {
         boolean border,
         CallbackInfo ci
     ) {
-        if (AdvancementsSearch.isSearch(tab.getRoot())) {
+        if (AdvancementsSearchMod.isSearch(tab.getRoot())) {
             ci.cancel();
         }
     }
@@ -70,13 +70,13 @@ public abstract class AdvancementWidgetMixin {
         int height,
         Operation<Void> original
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
-            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
-                highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id() &&
-                screenImpl.advancementssearch$getHighlightType() == HighlightType.WIDGET &&
-                screenImpl.advancementssearch$isHighlightAtInvisibleState()
+        if (tab.getScreen() instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            Identifier advancementId = advancementsScreenExtension.advancementssearch$getHighlightedAdvancementId();
+            if (!AdvancementsSearchMod.isSearch(tab.getRoot()) &&
+                advancementId != null &&
+                advancementId == advancement.getAdvancementEntry().id() &&
+                advancementsScreenExtension.advancementssearch$getHighlightType() == HighlightType.WIDGET &&
+                advancementsScreenExtension.advancementssearch$isHighlightAtInvisibleState()
             ) {
                 return;
             }
@@ -92,13 +92,13 @@ public abstract class AdvancementWidgetMixin {
         )
     )
     private @Nullable Identifier highlightObtainedStatus(AdvancementObtainedStatus status, AdvancementFrame frame) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
-            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
-                highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id() &&
-                screenImpl.advancementssearch$getHighlightType() == HighlightType.OBTAINED_STATUS &&
-                screenImpl.advancementssearch$isHighlightAtInvisibleState()
+        if (tab.getScreen() instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            Identifier advancementId = advancementsScreenExtension.advancementssearch$getHighlightedAdvancementId();
+            if (!AdvancementsSearchMod.isSearch(tab.getRoot()) &&
+                advancementId != null &&
+                advancementId == advancement.getAdvancementEntry().id() &&
+                advancementsScreenExtension.advancementssearch$getHighlightType() == HighlightType.OBTAINED_STATUS &&
+                advancementsScreenExtension.advancementssearch$isHighlightAtInvisibleState()
             ) {
                 status = status == AdvancementObtainedStatus.OBTAINED ?
                     AdvancementObtainedStatus.UNOBTAINED : AdvancementObtainedStatus.OBTAINED;
@@ -120,13 +120,13 @@ public abstract class AdvancementWidgetMixin {
         int y,
         CallbackInfo ci
     ) {
-        if (tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
-            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) &&
-                highlightedAdvancementId != null &&
-                highlightedAdvancementId == advancement.getAdvancementEntry().id()
+        if (tab.getScreen() instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            Identifier advancementId = advancementsScreenExtension.advancementssearch$getHighlightedAdvancementId();
+            if (!AdvancementsSearchMod.isSearch(tab.getRoot()) &&
+                advancementId != null &&
+                advancementId == advancement.getAdvancementEntry().id()
             ) {
-                screenImpl.advancementssearch$stopHighlight();
+                advancementsScreenExtension.advancementssearch$stopHighlight();
             }
         }
     }
@@ -136,10 +136,10 @@ public abstract class AdvancementWidgetMixin {
         at = @At(value = "TAIL")
     )
     public boolean cancelTooltipRender(boolean original) {
-        if (original && tab.getScreen() instanceof AdvancementsScreenImpl screenImpl) {
-            Identifier highlightedAdvancementId = screenImpl.advancementssearch$getHighlightedAdvancementId();
-            if (!AdvancementsSearch.isSearch(tab.getRoot()) && highlightedAdvancementId != null) {
-                return highlightedAdvancementId == advancement.getAdvancementEntry().id();
+        if (original && tab.getScreen() instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            Identifier advancementId = advancementsScreenExtension.advancementssearch$getHighlightedAdvancementId();
+            if (!AdvancementsSearchMod.isSearch(tab.getRoot()) && advancementId != null) {
+                return advancementId == advancement.getAdvancementEntry().id();
             }
         }
         return original;

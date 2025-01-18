@@ -15,7 +15,7 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"com.diskree.advancementssearch.AdvancementsSearch"
+          "com.diskree.advancementssearch.AdvancementsSearchMod"
 		]
 	},
 	"mixins": [

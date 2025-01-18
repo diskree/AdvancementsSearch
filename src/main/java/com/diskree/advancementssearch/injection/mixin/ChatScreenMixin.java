@@ -1,6 +1,6 @@
-package com.diskree.advancementssearch.mixin;
+package com.diskree.advancementssearch.injection.mixin;
 
-import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.AdvancementsSearchMod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.MinecraftClient;
@@ -26,7 +26,7 @@ public class ChatScreenMixin {
         )
     )
     private void cancelCloseScreen(MinecraftClient client, Screen screen, Operation<Void> original) {
-        if (!AdvancementsSearch.isModCommand(chatField.getText())) {
+        if (!AdvancementsSearchMod.isModCommand(chatField.getText())) {
             original.call(client, screen);
         }
     }

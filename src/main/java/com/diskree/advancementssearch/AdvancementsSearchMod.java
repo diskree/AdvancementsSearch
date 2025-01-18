@@ -1,5 +1,6 @@
 package com.diskree.advancementssearch;
 
+import com.diskree.advancementssearch.injection.extension.AdvancementsScreenExtension;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
-public class AdvancementsSearch implements ClientModInitializer {
+public class AdvancementsSearchMod implements ClientModInitializer {
 
     public static final Identifier ADVANCEMENTS_SEARCH_ID =
         Identifier.of(BuildConfig.MOD_ID, BuildConfig.MOD_ID + "/root");
@@ -114,8 +115,13 @@ public class AdvancementsSearch implements ClientModInitializer {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
-            if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
-                screenImpl.advancementssearch$search(query, searchByType, autoHighlightSingle, highlightType);
+            if (client.currentScreen instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+                advancementsScreenExtension.advancementssearch$search(
+                    query,
+                    searchByType,
+                    autoHighlightSingle,
+                    highlightType
+                );
             }
         }
         return Command.SINGLE_SUCCESS;
@@ -129,8 +135,8 @@ public class AdvancementsSearch implements ClientModInitializer {
         if (client.player != null) {
             AdvancementsScreen screen = new AdvancementsScreen(client.player.networkHandler.getAdvancementHandler());
             client.setScreen(screen);
-            if (client.currentScreen instanceof AdvancementsScreenImpl screenImpl) {
-                screenImpl.advancementssearch$highlightAdvancement(advancementId, highlightType);
+            if (client.currentScreen instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+                advancementsScreenExtension.advancementssearch$highlightAdvancement(advancementId, highlightType);
             }
         }
         return Command.SINGLE_SUCCESS;

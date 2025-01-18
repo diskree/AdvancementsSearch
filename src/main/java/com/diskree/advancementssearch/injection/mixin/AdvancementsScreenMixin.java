@@ -1,9 +1,9 @@
-package com.diskree.advancementssearch.mixin;
+package com.diskree.advancementssearch.injection.mixin;
 
-import com.diskree.advancementssearch.AdvancementsScreenImpl;
-import com.diskree.advancementssearch.AdvancementsSearch;
+import com.diskree.advancementssearch.AdvancementsSearchMod;
 import com.diskree.advancementssearch.HighlightType;
 import com.diskree.advancementssearch.SearchByType;
+import com.diskree.advancementssearch.injection.extension.AdvancementsScreenExtension;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.advancement.*;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.*;
 
 @Mixin(AdvancementsScreen.class)
-public abstract class AdvancementsScreenMixin extends Screen implements AdvancementsScreenImpl {
+public abstract class AdvancementsScreenMixin extends Screen implements AdvancementsScreenExtension {
 
     @Unique
     private static final Identifier CREATIVE_INVENTORY_TEXTURE =
@@ -212,8 +212,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void advancementssearch$tick() {
         if (widgetHighlightCounter > 0) {
             widgetHighlightCounter--;
             if (widgetHighlightCounter == 0) {
@@ -223,7 +222,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
+    public boolean advancementssearch$charTyped(char chr, int modifiers) {
         if (searchField != null) {
             String oldText = searchField.getText();
             if (searchField.charTyped(chr, modifiers)) {
@@ -237,7 +236,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void advancementssearch$resize(MinecraftClient client, int width, int height) {
         if (searchField != null) {
             String oldText = searchField.getText();
             init(client, width, height);
@@ -246,11 +245,11 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public void advancementssearch$onMouseReleased(double mouseX, double mouseY, int button) {
         if (isFocusedAdvancementClicked &&
             focusedAdvancementWidget != null &&
             focusedAdvancementWidget.tab == searchTab &&
-            button == MouseEvent.NOBUTTON
+            button == GLFW.GLFW_MOUSE_BUTTON_LEFT
         ) {
             Identifier focusedAdvancementId = focusedAdvancementWidget.advancement.getAdvancementEntry().id();
             for (PlacedAdvancement advancement : getAdvancements(true)) {
@@ -260,7 +259,6 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 }
             }
         }
-        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Unique
@@ -641,7 +639,7 @@ public abstract class AdvancementsScreenMixin extends Screen implements Advancem
                 Advancement.Builder
                     .createUntelemetered()
                     .display(searchRootAdvancementDisplay)
-                    .build(AdvancementsSearch.ADVANCEMENTS_SEARCH_ID),
+                    .build(AdvancementsSearchMod.ADVANCEMENTS_SEARCH_ID),
                 null
             );
             AdvancementsScreen advancementsScreen = (AdvancementsScreen) (Object) this;

@@ -1,6 +1,6 @@
-package com.diskree.advancementssearch.mixin;
+package com.diskree.advancementssearch.injection.mixin;
 
-import com.diskree.advancementssearch.AdvancementsScreenImpl;
+import com.diskree.advancementssearch.injection.extension.AdvancementsScreenExtension;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -9,7 +9,6 @@ import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,8 +43,8 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) AdvancementWidget advancementWidget
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl) {
-            screenImpl.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
+        if (screen instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            advancementsScreenExtension.advancementssearch$setFocusedAdvancementWidget(advancementWidget);
         }
     }
 
@@ -66,8 +65,8 @@ public class AdvancementTabMixin {
         CallbackInfo ci,
         @Local(ordinal = 0) boolean shouldShowTooltip
     ) {
-        if (!shouldShowTooltip && screen instanceof AdvancementsScreenImpl screenImpl) {
-            screenImpl.advancementssearch$setFocusedAdvancementWidget(null);
+        if (!shouldShowTooltip && screen instanceof AdvancementsScreenExtension advancementsScreenExtension) {
+            advancementsScreenExtension.advancementssearch$setFocusedAdvancementWidget(null);
         }
     }
 
@@ -92,36 +91,10 @@ public class AdvancementTabMixin {
         int textureHeight,
         Operation<Void> original
     ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && !screenImpl.advancementssearch$isSearchActive()) {
+        if (screen instanceof AdvancementsScreenExtension advancementsScreenExtension &&
+            !advancementsScreenExtension.advancementssearch$isSearchActive()
+        ) {
             original.call(context, renderLayers, sprite, x, y, u, v, width, height, textureWidth, textureHeight);
         }
-    }
-
-    @WrapOperation(
-        method = "render",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/screen/advancement/AdvancementWidget;renderLines(Lnet/minecraft/client/gui/DrawContext;IIZ)V",
-            ordinal = 0
-        )
-    )
-    public void drawBlackBackgroundInSearch(
-        AdvancementWidget instance,
-        DrawContext context,
-        int x,
-        int y,
-        boolean border,
-        Operation<Void> original
-    ) {
-        if (screen instanceof AdvancementsScreenImpl screenImpl && screenImpl.advancementssearch$isSearchActive()) {
-            context.fill(
-                0,
-                0,
-                screenImpl.advancementssearch$getTreeWidth(),
-                screenImpl.advancementssearch$getTreeHeight(),
-                Colors.BLACK
-            );
-        }
-        original.call(instance, context, x, y, border);
     }
 }

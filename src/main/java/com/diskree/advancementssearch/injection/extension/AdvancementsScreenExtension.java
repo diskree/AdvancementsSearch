@@ -1,10 +1,12 @@
-package com.diskree.advancementssearch;
+package com.diskree.advancementssearch.injection.extension;
 
+import com.diskree.advancementssearch.HighlightType;
+import com.diskree.advancementssearch.SearchByType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.util.Identifier;
 
-public interface AdvancementsScreenImpl {
-
+public interface AdvancementsScreenExtension {
     void advancementssearch$setFocusedAdvancementWidget(AdvancementWidget focusedAdvancementWidget);
 
     boolean advancementssearch$isSearchActive();
@@ -29,4 +31,12 @@ public interface AdvancementsScreenImpl {
     );
 
     void advancementssearch$highlightAdvancement(Identifier advancementId, HighlightType highlightType);
+
+    void advancementssearch$tick();
+
+    boolean advancementssearch$charTyped(char chr, int modifiers);
+
+    void advancementssearch$resize(MinecraftClient client, int width, int height);
+
+    void advancementssearch$onMouseReleased(double mouseX, double mouseY, int button);
 }
